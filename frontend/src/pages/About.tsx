@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { Reveal } from '../components/Reveal';
+import SEO from '../components/common/SEO';
+import LazyImage from '../components/common/LazyImage';
 
 const About = () => {
   const features = [
@@ -15,16 +17,21 @@ const About = () => {
       exit={{ opacity: 0 }} 
       className="page page-transition"
     >
-      <section className="section container">
+      <SEO 
+        title="Về Chúng Tôi | Câu Chuyện HerbSpa Lab" 
+        description="Tìm hiểu về triết lý chăm sóc da thảo mộc thuần khiết và sứ mệnh mang lại vẻ đẹp bền vững của HerbSpa Lab." 
+      />
+
+      <section className="section container" aria-labelledby="about-title">
         <div className="about-hero-layout">
           <div className="about-text-content">
             <Reveal>
               <span className="hero-subtitle" style={{ color: 'var(--secondary)' }}>VỀ CHÚNG TÔI</span>
             </Reveal>
             <Reveal>
-              <h1 className="section-title">Triết lý Herbspa Lab</h1>
+              <h1 id="about-title" className="section-title">Triết lý Herbspa Lab</h1>
             </Reveal>
-            <div className="divider"></div>
+            <div className="divider" role="presentation"></div>
             <p className="about-intro">
               Chúng tôi tin rằng vẻ đẹp thực sự bắt nguồn từ sự cân bằng giữa con người và thiên nhiên. 
               Mọi sản phẩm của Herbspa Lab đều là sự kết tinh của tinh hoa thảo dược cổ truyền và khoa học da liễu hiện đại.
@@ -36,10 +43,10 @@ const About = () => {
           </div>
           <div className="about-image-collage">
              <div className="img-main">
-               <img src="https://images.unsplash.com/photo-1552046122-03184de85e08?auto=format&fit=crop&w=800&q=80" alt="Herbs" />
+               <LazyImage src="https://images.unsplash.com/photo-1552046122-03184de85e08?auto=format&fit=crop&w=800&q=80" alt="Cánh đồng thảo dược hữu cơ của HerbSpa Lab" />
              </div>
              <div className="img-sub">
-               <img src="https://images.unsplash.com/photo-1540555700478-4be289aefec9?auto=format&fit=crop&w=600&q=80" alt="Spa" />
+               <LazyImage src="https://images.unsplash.com/photo-1540555700478-4be289aefec9?auto=format&fit=crop&w=600&q=80" alt="Không gian thư giãn tại HerbSpa" />
              </div>
           </div>
         </div>

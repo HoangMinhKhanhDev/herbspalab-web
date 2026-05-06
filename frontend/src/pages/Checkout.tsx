@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { ChevronRight, MapPin, CreditCard, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/common/SEO';
 
 const steps = ['Thông tin', 'Thanh toán', 'Hoàn tất'];
 
@@ -35,6 +36,7 @@ const Checkout = () => {
       animate={{ opacity: 1 }} 
       className="page container section"
     >
+      <SEO title="Thanh toán an toàn" />
       <div className="checkout-container">
         {/* Progress Stepper */}
         <div className="checkout-stepper">

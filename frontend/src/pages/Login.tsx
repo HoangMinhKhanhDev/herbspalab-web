@@ -1,8 +1,27 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    const success = await login(email, password);
+    if (success) {
+      navigate('/');
+    } else {
+      setError('Email hoặc mật khẩu không chính xác');
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -15,19 +34,32 @@ const Login = () => {
           <h1>Chào mừng trở lại</h1>
           <p>Đăng nhập để tiếp tục hành trình chăm sóc da cùng Herbspa Lab</p>
         </div>
-        <form className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {error && <div className="auth-error">{error}</div>}
           <div className="form-group">
             <label>Email</label>
             <div className="input-wrapper">
               <Mail size={18} />
-              <input type="email" placeholder="email@example.com" />
+              <input 
+                type="email" 
+                placeholder="email@example.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
             </div>
           </div>
           <div className="form-group">
             <label>Mật khẩu</label>
             <div className="input-wrapper">
               <Lock size={18} />
-              <input type="password" placeholder="••••••••" />
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+              />
             </div>
           </div>
           <div className="form-utils">
