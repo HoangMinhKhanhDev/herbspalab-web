@@ -1,36 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { ChevronRight, Play, Eye, ShoppingCart } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { ChevronRight, Play, Eye, ShoppingCart, ArrowRight, Sparkles, ShieldCheck, Globe } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 import SEO from '../components/common/SEO';
 import QuickView from '../components/common/QuickView';
 import LazyImage from '../components/common/LazyImage';
 
+const Counter = ({ value, label, suffix = "" }: { value: number, label: string, suffix?: string }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (isInView) {
+      let start = 0;
+      const end = value;
+      const duration = 2000;
+      const increment = end / (duration / 16);
+      
+      const timer = setInterval(() => {
+        start += increment;
+        if (start >= end) {
+          setCount(end);
+          clearInterval(timer);
+        } else {
+          setCount(Math.floor(start));
+        }
+      }, 16);
+      return () => clearInterval(timer);
+    }
+  }, [isInView, value]);
+
+  return (
+    <div className="stat-item" ref={ref}>
+      <div className="stat-num">{count}{suffix}</div>
+      <div className="stat-label">{label}</div>
+    </div>
+  );
+};
+
 const FloatingPetals = () => {
   return (
     <div className="floating-petals">
-      {[...Array(6)].map((_, i) => (
+      {[...Array(8)].map((_, i) => (
         <motion.div
           key={i}
           className="petal"
           initial={{ 
-            x: Math.random() * window.innerWidth, 
+            x: Math.random() * 100 + "vw", 
             y: -100, 
             rotate: 0,
             opacity: 0 
           }}
           animate={{ 
-            y: window.innerHeight + 100,
-            x: `calc(${Math.random() * 100}vw + ${Math.sin(i) * 50}px)`,
-            rotate: 360,
+            y: "110vh",
+            x: `calc(${Math.random() * 100}vw + ${Math.sin(i) * 100}px)`,
+            rotate: 720,
             opacity: [0, 0.4, 0.4, 0]
           }}
           transition={{ 
-            duration: 10 + Math.random() * 10, 
+            duration: 15 + Math.random() * 15, 
             repeat: Infinity, 
             ease: "linear",
-            delay: i * 2 
+            delay: i * 3 
           }}
         />
       ))}
@@ -41,15 +74,18 @@ const FloatingPetals = () => {
 const Home = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 150]);
-  const scale = useTransform(scrollY, [0, 500], [1, 1.1]);
+  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+  const y2 = useTransform(scrollY, [0, 1000], [0, -150]);
+  const scale = useTransform(scrollY, [0, 800], [1, 1.2]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  
   const springY1 = useSpring(y1, { stiffness: 100, damping: 30 });
 
   const featuredProducts = [
-    { name: "Serum Phục Hồi", price: "1.250.000₫", img: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80", tag: "Best Seller" },
-    { name: "Kem Dưỡng Thảo Mộc", price: "850.000₫", img: "https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=600&q=80", tag: "New" },
-    { name: "Sữa Rửa Mặt Tự Nhiên", price: "450.000₫", img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80", tag: "Popular" },
-    { name: "Mặt Nạ Thải Độc", price: "320.000₫", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=600&q=80", tag: "Must Have" }
+    { id: 1, name: "Serum Phục Hồi Nhân Sâm", price: "1.250.000₫", img: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80", tag: "Best Seller" },
+    { id: 2, name: "Kem Dưỡng Thảo Mộc Ban Đêm", price: "850.000₫", img: "https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=800&q=80", tag: "New Arrival" },
+    { id: 3, name: "Sữa Rửa Mặt Tảo Biển", price: "450.000₫", img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80", tag: "Organic" },
+    { id: 4, name: "Mặt Nạ Thải Độc Trà Xanh", price: "320.000₫", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80", tag: "Popular" }
   ];
 
   return (
@@ -57,11 +93,11 @@ const Home = () => {
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
       exit={{ opacity: 0 }} 
-      className="page page-transition"
+      className="home-wrapper"
     >
       <SEO 
-        title="Luxury Skincare & Spa" 
-        description="Trải nghiệm dòng mỹ phẩm thảo mộc cao cấp và liệu trình spa chuyên sâu tại HerbSpa Lab." 
+        title="Luxury Skincare & Spa Heritage" 
+        description="Khám phá tinh hoa thảo mộc kết hợp công nghệ hiện đại tại HerbSpa Lab. Giải pháp chăm sóc da toàn diện từ thiên nhiên." 
       />
 
       <QuickView 
@@ -71,109 +107,121 @@ const Home = () => {
 
       <FloatingPetals />
 
-      <section className="hero-section">
-        <motion.div 
-          className="hero-parallax-bg"
-          style={{ scale }}
-        />
-        <div className="hero-overlay"></div>
-        <div className="container hero-content">
-          <motion.div
-            style={{ y: springY1 }}
-            className="hero-text-wrap"
+      {/* --- SPLIT HERO SECTION --- */}
+      <section className="hero-split">
+        <div className="hero-left">
+          <motion.div 
+            className="hero-text-container"
+            style={{ y: springY1, opacity }}
           >
-            <motion.span 
-              initial={{ opacity: 0, letterSpacing: "10px" }}
-              animate={{ opacity: 1, letterSpacing: "4px" }}
-              transition={{ duration: 1.5 }}
-              className="hero-subtitle"
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
             >
-              SINCE 1992 • ORGANIC HERITAGE
-            </motion.span>
-            <h1 className="hero-title">
-              Vẻ Đẹp <br /> <span>Thuần Khiết</span>
-            </h1>
-            <p className="hero-desc">
-              Hành trình đánh thức làn da bằng tinh hoa thảo mộc tự nhiên và nghệ thuật chăm sóc spa đẳng cấp quốc tế.
-            </p>
-            <div className="hero-actions">
-              <Link to="/products" className="btn btn-primary">Khám phá ngay</Link>
-              <button className="btn-video">
-                <div className="play-icon"><Play size={16} fill="white" /></div>
-                Xem phim ngắn
-              </button>
-            </div>
+              <span className="hero-tag">THE ART OF BOTANICALS</span>
+              <h1 className="hero-display">
+                Đánh Thức <br />
+                <span className="italic-text">Vẻ Đẹp</span> <br />
+                Huyền Bí
+              </h1>
+              <p className="hero-lead">
+                Hành trình từ vườn dược liệu cổ truyền đến công nghệ sinh học hiện đại, 
+                mang lại sự thảnh thơi tuyệt đối cho làn da của bạn.
+              </p>
+              <div className="hero-btns">
+                <Link to="/products" className="btn-premium">
+                  <span>KHÁM PHÁ BỘ SƯU TẬP</span>
+                  <ArrowRight size={18} />
+                </Link>
+                <button className="btn-circle-play">
+                  <Play size={20} fill="currentColor" />
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
-        <div className="hero-scroll-indicator">
-          <div className="mouse"></div>
-          <span>CUỘN ĐỂ KHÁM PHÁ</span>
+        
+        <div className="hero-right">
+          <motion.div 
+            className="hero-image-parallax"
+            style={{ scale }}
+          >
+            <img src="https://images.unsplash.com/photo-1570172619380-4101750c58e4?auto=format&fit=crop&w=1200&q=90" alt="Luxury Spa" />
+          </motion.div>
+          <div className="hero-glass-card">
+            <div className="glass-content">
+              <h3>Signature Treatment</h3>
+              <p>Liệu pháp phục hồi tầng sâu bằng Nhụy hoa nghệ tây và Nhân sâm đỏ.</p>
+              <Link to="/skin-quiz" className="glass-link">TƯ VẤN NGAY</Link>
+            </div>
+          </div>
+        </div>
+
+        <motion.div 
+          className="hero-scroll-down"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="scroll-line"></div>
+          <span>SCROLL</span>
+        </motion.div>
+      </section>
+
+      {/* --- STATS COUNTER SECTION --- */}
+      <section className="section-stats">
+        <div className="container stats-grid">
+          <Counter value={32} label="Năm Kinh Nghiệm" suffix="+" />
+          <Counter value={150} label="Sản Phẩm Hữu Cơ" suffix="+" />
+          <Counter value={98} label="Khách Hàng Hài Lòng" suffix="%" />
+          <Counter value={12} label="Giải Thưởng Quốc Tế" />
         </div>
       </section>
 
-      <section className="section container">
-        <div className="section-header">
-          <Reveal>
-            <h2 className="section-title">Sản phẩm tiêu biểu</h2>
-          </Reveal>
-          <Link to="/products" className="view-all">Tất cả sản phẩm <ChevronRight size={18} /></Link>
-        </div>
-        <div className="product-grid">
-          {featuredProducts.map((p, i) => (
-            <motion.div 
-              key={i} 
-              className="product-card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="product-image-container">
-                <LazyImage src={p.img} alt={p.name} className="product-image" />
-                {p.tag && <span className="product-badge">{p.tag}</span>}
-                <div className="product-actions">
-                  <button className="action-btn" onClick={() => setSelectedProduct(p)}>
-                    <Eye size={20} />
-                  </button>
-                  <button className="action-btn">
-                    <ShoppingCart size={20} />
-                  </button>
-                </div>
-              </div>
-              <Link to={`/product/${i + 1}`} className="product-info">
-                <h3>{p.name}</h3>
-                <div className="product-price">{p.price}</div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <section className="section bg-dark ingredients-section">
+      {/* --- FEATURED COLLECTION --- */}
+      <section className="section section-featured">
         <div className="container">
-          <Reveal>
-            <span className="section-subtitle">THE ART OF BOTANICALS</span>
-            <h2 className="section-title text-white">Tinh Hoa Thảo Mộc</h2>
-          </Reveal>
-          
-          <div className="ingredients-scroll">
-            {[
-              { name: "Nhân Sâm Đỏ", desc: "Phục hồi sinh khí và chống lão hóa tầng sâu.", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=600&q=80" },
-              { name: "Linh Chi Tuyết", desc: "Làm dịu và tăng cường hàng rào bảo vệ da.", img: "https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=600&q=80" },
-              { name: "Nhụy Hoa Nghệ Tây", desc: "Làm sáng da tự nhiên và mờ thâm nám.", img: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80" },
-              { name: "Trà Xanh Cổ Thụ", desc: "Thải độc và se khít lỗ chân lông tức thì.", img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80" }
-            ].map((ing, i) => (
+          <div className="flex-header">
+            <Reveal>
+              <span className="subtitle">COLLECTIONS</span>
+              <h2 className="title">Sản Phẩm Tiêu Biểu</h2>
+            </Reveal>
+            <Link to="/products" className="link-arrow">
+              Xem tất cả <ChevronRight size={18} />
+            </Link>
+          </div>
+
+          <div className="product-catalog-grid">
+            {featuredProducts.map((product, idx) => (
               <motion.div 
-                key={i} 
-                className="ingredient-card"
-                whileHover={{ y: -20 }}
+                key={product.id}
+                className="product-card-premium"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: idx * 0.15 }}
               >
-                <div className="ing-img-wrap">
-                  <LazyImage src={ing.img} alt={ing.name} />
+                <div className="card-img-wrapper">
+                  <img src={product.img} alt={product.name} />
+                  <span className="card-tag">{product.tag}</span>
+                  <div className="card-overlay">
+                    <button className="overlay-btn" onClick={() => setSelectedProduct(product)}>
+                      <Eye size={20} />
+                    </button>
+                    <button className="overlay-btn">
+                      <ShoppingCart size={20} />
+                    </button>
+                  </div>
                 </div>
-                <div className="ing-info">
-                  <h3>{ing.name}</h3>
-                  <p>{ing.desc}</p>
+                <div className="card-body">
+                  <div className="card-rating">★★★★★</div>
+                  <h3>{product.name}</h3>
+                </div>
+                <div className="card-footer">
+                  <span className="price">{product.price}</span>
+                  <button className="cart-icon-btn">
+                    <ShoppingCart size={18} />
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -181,11 +229,70 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="section bg-accent">
-        <div className="container promo-banner">
-          <div className="promo-text">
-            <h2 className="promo-title">Chăm sóc da toàn diện</h2>
-            <p>Nhận ngay ưu đãi 20% cho lần đầu trải nghiệm dịch vụ Spa thảo mộc tại trung tâm của chúng tôi.</p>
+      {/* --- HERITAGE ZONE (VISUAL ZONE) --- */}
+      <section className="heritage-zone">
+        <div className="heritage-bg">
+          <motion.img 
+            style={{ y: y2 }}
+            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80" 
+            alt="Nature Heritage" 
+          />
+        </div>
+        <div className="container heritage-content">
+          <div className="heritage-text-box">
+            <Reveal>
+              <span className="subtitle-gold">BOTANICAL HERITAGE</span>
+              <h2>Nguồn Gốc Của Sự Thảnh Thơi</h2>
+              <p>
+                Tại HerbSpa Lab, chúng tôi tin rằng làn da phản chiếu tâm hồn. 
+                Mỗi sản phẩm là một bản giao hưởng giữa tinh hoa thảo dược ngàn năm 
+                và những nghiên cứu đột phá về tế bào gốc thực vật.
+              </p>
+              <div className="feature-list">
+                <div className="feature-item">
+                  <Sparkles size={20} />
+                  <span>100% Nguyên liệu hữu cơ</span>
+                </div>
+                <div className="feature-item">
+                  <ShieldCheck size={20} />
+                  <span>Đã kiểm nghiệm lâm sàng</span>
+                </div>
+                <div className="feature-item">
+                  <Globe size={20} />
+                  <span>Chứng nhận quốc tế EcoCert</span>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* --- PROMO SECTION --- */}
+      <section className="section section-promo">
+        <div className="container">
+          <div className="promo-glass-wrap">
+            <div className="promo-content">
+              <Reveal>
+                <h2>Tham Gia Liệu Trình Tư Vấn Cá Nhân</h2>
+                <p>Mỗi làn da là một câu chuyện riêng. Hãy để chuyên gia của chúng tôi giúp bạn viết tiếp chương rạng rỡ nhất.</p>
+                <div className="promo-actions">
+                  <Link to="/skin-quiz" className="btn-premium">BẮT ĐẦU QUIZ DA</Link>
+                  <Link to="/consultation" className="btn-outline">ĐẶT LỊCH SPA</Link>
+                </div>
+              </Reveal>
+            </div>
+            <div className="promo-img-side">
+              <img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc2069?auto=format&fit=crop&w=800&q=80" alt="Consultation" />
+            </div>
+          </div>
+        </div>
+      </section>
+    </motion.div>
+  );
+};
+
+export default Home;
+ủa chúng tôi.</p>
             <button className="btn btn-primary">Đặt lịch hẹn</button>
           </div>
           <div className="promo-image"></div>

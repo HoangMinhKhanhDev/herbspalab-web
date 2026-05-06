@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, User, Menu, X, Search, Sun, Moon, Heart } from 'lucide-react';
+import { ShoppingBag, User, Menu, X, Search, Sun, Moon, Heart, Home, Leaf } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -32,7 +32,16 @@ export const Navbar = () => {
     { name: 'Tin tức', path: '/news' },
   ];
 
+  const mobileNavItems = [
+    { icon: Home, label: 'Trang chủ', path: '/' },
+    { icon: Leaf, label: 'Sản phẩm', path: '/products' },
+    { icon: Search, label: 'Tìm kiếm', path: '#search' },
+    { icon: Heart, label: 'Yêu thích', path: '/wishlist' },
+    { icon: User, label: 'Tài khoản', path: isAuthenticated ? '/profile' : '/login' },
+  ];
+
   return (
+    <>
     <nav className={`premium-nav ${isScrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Menu chính">
       <div className="container nav-wrap">
         <Link to="/" className="brand-logo" aria-label="HerbSpa Lab - Quay về trang chủ">HERBSPA LAB</Link>
@@ -160,5 +169,33 @@ export const Navbar = () => {
         onClose={() => setIsSearchOpen(false)} 
       />
     </nav>
+
+    {/* Mobile Bottom Navigation - Glass Pill */}
+    <div className="mobile-bottom-nav" aria-label="Điều hướng di động">
+      {mobileNavItems.map((item) => (
+        item.path === '#search' ? (
+          <button
+            key="search"
+            className="bottom-nav-item"
+            onClick={() => setIsSearchOpen(true)}
+            aria-label={item.label}
+          >
+            <item.icon size={20} />
+            <span>{item.label}</span>
+          </button>
+        ) : (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`bottom-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+            aria-label={item.label}
+          >
+            <item.icon size={20} />
+            <span>{item.label}</span>
+          </Link>
+        )
+      ))}
+    </div>
+    </>
   );
 };
