@@ -59,20 +59,24 @@ export const Navbar = () => {
           >
             {theme === 'light' ? <Moon size={18} aria-hidden="true" /> : <Sun size={18} aria-hidden="true" />}
           </button>
+          
           <button 
-            className="util-icon" 
+            className="util-icon hide-mobile" 
             onClick={() => setIsSearchOpen(true)}
             aria-label="Tìm kiếm sản phẩm"
           >
             <Search size={18} aria-hidden="true" />
           </button>
-          <Link to="/wishlist" className="util-icon wishlist-util" aria-label={`Danh sách yêu thích (${wishlist.length} mục)`}>
+          
+          <Link to="/wishlist" className="util-icon wishlist-util hide-mobile" aria-label={`Danh sách yêu thích (${wishlist.length} mục)`}>
             <Heart size={18} fill={wishlist.length > 0 ? "var(--secondary)" : "none"} stroke={wishlist.length > 0 ? "var(--secondary)" : "currentColor"} aria-hidden="true" />
             {wishlist.length > 0 && <span className="util-badge">{wishlist.length}</span>}
           </Link>
-          <Link to={isAuthenticated ? "/profile" : "/login"} className="util-icon" aria-label={isAuthenticated ? "Hồ sơ cá nhân" : "Đăng nhập"}>
+          
+          <Link to={isAuthenticated ? "/profile" : "/login"} className="util-icon hide-mobile" aria-label={isAuthenticated ? "Hồ sơ cá nhân" : "Đăng nhập"}>
             <User size={18} aria-hidden="true" />
           </Link>
+          
           <button 
             className="cart-util util-icon" 
             onClick={() => setIsCartOpen(true)}
@@ -81,6 +85,7 @@ export const Navbar = () => {
             <ShoppingBag size={18} aria-hidden="true" />
             <span className="util-badge">{cartCount}</span>
           </button>
+          
           <button 
             className="mobile-toggle util-icon" 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -94,38 +99,60 @@ export const Navbar = () => {
 
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="side-menu"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu di động"
-          >
-            <div className="side-menu-header">
-               <button onClick={() => setIsMenuOpen(false)} aria-label="Đóng menu"><X aria-hidden="true" /></button>
-            </div>
-            <div className="side-menu-links">
-              {navLinks.map((link) => (
-                <Link 
-                  key={link.path} 
-                  to={link.path} 
-                  onClick={() => setIsMenuOpen(false)}
-                  aria-current={location.pathname === link.path ? 'page' : undefined}
-                >
-                  {link.name.toUpperCase()}
-                </Link>
-              ))}
-              <Link to="/admin" onClick={() => setIsMenuOpen(false)}>ADMIN PANEL</Link>
-              {isAuthenticated ? (
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>HỒ SƠ CỦA TÔI</Link>
-              ) : (
-                <Link to="/login" onClick={() => setIsMenuOpen(false)}>ĐĂNG NHẬP</Link>
-              )}
-            </div>
-          </motion.div>
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="side-menu-backdrop"
+              onClick={() => setIsMenuOpen(false)}
+            />
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="side-menu"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu di động"
+            >
+              <div className="side-menu-header">
+                <span className="side-brand">HERBSPA LAB</span>
+                <button className="close-side" onClick={() => setIsMenuOpen(false)} aria-label="Đóng menu"><X size={24} /></button>
+              </div>
+              
+              <div className="side-menu-links">
+                {navLinks.map((link) => (
+                  <Link 
+                    key={link.path} 
+                    to={link.path} 
+                    onClick={() => setIsMenuOpen(false)}
+                    className={location.pathname === link.path ? 'active' : ''}
+                  >
+                    {link.name.toUpperCase()}
+                  </Link>
+                ))}
+                
+                <div className="side-divider"></div>
+                
+                <Link to="/wishlist" onClick={() => setIsMenuOpen(false)}>YÊU THÍCH ({wishlist.length})</Link>
+                {isAuthenticated ? (
+                  <Link to="/profile" onClick={() => setIsMenuOpen(false)}>HỒ SƠ CỦA TÔI</Link>
+                ) : (
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>ĐĂNG NHẬP / ĐĂNG KÝ</Link>
+                )}
+                <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="admin-link">QUẢN TRỊ VIÊN</Link>
+                
+                <div className="side-theme-toggle">
+                  <span>Chế độ {theme === 'light' ? 'Sáng' : 'Tối'}</span>
+                  <button onClick={toggleTheme}>
+                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
       <SmartSearch 
