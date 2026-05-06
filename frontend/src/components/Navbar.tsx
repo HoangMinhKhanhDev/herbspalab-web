@@ -22,6 +22,7 @@ export const Navbar = () => {
     { name: 'Trang chủ', path: '/' },
     { name: 'Giới thiệu', path: '/about' },
     { name: 'Sản phẩm', path: '/products' },
+    { name: 'Tư vấn da', path: '/skin-quiz' },
     { name: 'Tin tức', path: '/news' },
   ];
 
