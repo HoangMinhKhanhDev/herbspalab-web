@@ -67,9 +67,13 @@ export const CartSidebar = () => {
                   <span>Tổng cộng:</span>
                   <span>{cartTotal.toLocaleString()}₫</span>
                 </div>
-                <button className="btn btn-primary btn-block">
+                <Link 
+                  to="/checkout" 
+                  className="btn btn-primary btn-block"
+                  onClick={() => setIsCartOpen(false)}
+                >
                   THANH TOÁN NGAY <ArrowRight size={18} />
-                </button>
+                </Link>
               </div>
             )}
           </motion.div>
