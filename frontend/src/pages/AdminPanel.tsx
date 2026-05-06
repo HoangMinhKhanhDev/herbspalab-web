@@ -19,10 +19,10 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const stats = [
-    { label: 'Doanh thu tháng', value: '128.500.000₫', icon: TrendingUp, color: '#bca37f' },
-    { label: 'Đơn hàng mới', value: '42', icon: ShoppingCart, color: '#2c3e50' },
-    { label: 'Khách hàng', value: '1,240', icon: Users, color: '#2c3e50' },
-    { label: 'Hết hàng', value: '5', icon: AlertTriangle, color: '#e74c3c' },
+    { label: 'Doanh thu tháng', value: '128.500.000₫', icon: TrendingUp },
+    { label: 'Đơn hàng mới', value: '42', icon: ShoppingCart },
+    { label: 'Khách hàng', value: '1,240', icon: Users },
+    { label: 'Hết hàng', value: '5', icon: AlertTriangle },
   ];
 
   return (
@@ -89,7 +89,7 @@ const AdminPanel = () => {
             <div className="admin-stats-grid">
               {stats.map((stat, i) => (
                 <div key={i} className="admin-stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: stat.color + '15', color: stat.color }}>
+                  <div className="stat-icon">
                     <stat.icon size={24} />
                   </div>
                   <div className="stat-info">
