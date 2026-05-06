@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +14,7 @@ export const Navbar = () => {
   const { cartCount, setIsCartOpen } = useCart();
   const { theme, toggleTheme } = useTheme();
   const { wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
@@ -54,7 +56,9 @@ export const Navbar = () => {
             <Heart size={18} fill={wishlist.length > 0 ? "var(--secondary)" : "none"} stroke={wishlist.length > 0 ? "var(--secondary)" : "currentColor"} />
             {wishlist.length > 0 && <span className="util-badge">{wishlist.length}</span>}
           </Link>
-          <Link to="/login" className="util-icon"><User size={18} /></Link>
+          <Link to={isAuthenticated ? "/profile" : "/login"} className="util-icon">
+            <User size={18} />
+          </Link>
           <div className="cart-util util-icon" onClick={() => setIsCartOpen(true)}>
             <ShoppingBag size={18} />
             <span className="util-badge">{cartCount}</span>
@@ -88,6 +92,11 @@ export const Navbar = () => {
                 </Link>
               ))}
               <Link to="/admin" onClick={() => setIsMenuOpen(false)}>ADMIN PANEL</Link>
+              {isAuthenticated ? (
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>HỒ SƠ CỦA TÔI</Link>
+              ) : (
+                <Link to="/login" onClick={() => setIsMenuOpen(false)}>ĐĂNG NHẬP</Link>
+              )}
             </div>
           </motion.div>
         )}
