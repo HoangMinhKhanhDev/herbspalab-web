@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useWishlist } from '../context/WishlistContext';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -12,6 +13,7 @@ const Products = () => {
   const [activeCategory, setActiveCategory] = useState('Tất cả');
   const [activeSkinType, setActiveSkinType] = useState('Tất cả');
   const [priceRange, setPriceRange] = useState(2000000);
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const categories = ['Tất cả', 'Làm sạch', 'Dưỡng ẩm', 'Trị liệu', 'Chống nắng'];
   const skinTypes = ['Tất cả', 'Da dầu', 'Da khô', 'Da nhạy cảm', 'Da hỗn hợp'];
@@ -110,6 +112,19 @@ const Products = () => {
                   <div className="card-img-wrapper">
                     <img src={p.image} alt={p.name} />
                     <span className="card-tag">{p.category}</span>
+                    <button 
+                      className="wishlist-toggle-btn"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        isInWishlist(p.id) ? removeFromWishlist(p.id) : addToWishlist(p);
+                      }}
+                    >
+                      <Heart 
+                        size={20} 
+                        fill={isInWishlist(p.id) ? "var(--secondary)" : "none"} 
+                        stroke={isInWishlist(p.id) ? "var(--secondary)" : "white"} 
+                      />
+                    </button>
                   </div>
                 </Link>
                 <div className="card-body">

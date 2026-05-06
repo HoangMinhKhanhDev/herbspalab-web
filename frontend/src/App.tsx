@@ -14,6 +14,8 @@ import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import News from './pages/News';
 import SkinQuiz from './pages/SkinQuiz';
+import Wishlist from './pages/Wishlist';
+import Checkout from './pages/Checkout';
 import AdminPanel from './pages/AdminPanel';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -35,6 +37,8 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/news" element={<News />} />
             <Route path="/skin-quiz" element={<SkinQuiz />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/admin" element={<AdminPanel />} />

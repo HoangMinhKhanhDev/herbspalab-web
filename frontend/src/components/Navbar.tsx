@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, User, Menu, X, Search, Sun, Moon } from 'lucide-react';
+import { ShoppingBag, User, Menu, X, Search, Sun, Moon, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -11,6 +12,7 @@ export const Navbar = () => {
   const location = useLocation();
   const { cartCount, setIsCartOpen } = useCart();
   const { theme, toggleTheme } = useTheme();
+  const { wishlist } = useWishlist();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
@@ -48,10 +50,14 @@ export const Navbar = () => {
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
           <Search size={18} className="util-icon" />
+          <Link to="/wishlist" className="util-icon wishlist-util">
+            <Heart size={18} fill={wishlist.length > 0 ? "var(--secondary)" : "none"} stroke={wishlist.length > 0 ? "var(--secondary)" : "currentColor"} />
+            {wishlist.length > 0 && <span className="util-badge">{wishlist.length}</span>}
+          </Link>
           <Link to="/login" className="util-icon"><User size={18} /></Link>
           <div className="cart-util util-icon" onClick={() => setIsCartOpen(true)}>
             <ShoppingBag size={18} />
-            <span className="cart-count">{cartCount}</span>
+            <span className="util-badge">{cartCount}</span>
           </div>
           <button className="mobile-toggle util-icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
