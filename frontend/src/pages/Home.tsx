@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronRight, Play, Eye, ShoppingCart } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { ChevronRight, Play, Eye, ShoppingCart } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 import SEO from '../components/common/SEO';
 import QuickView from '../components/common/QuickView';
 import LazyImage from '../components/common/LazyImage';
-
-const FloatingPetals = () => {
 
 const FloatingPetals = () => {
   return (
@@ -44,7 +42,6 @@ const Home = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 150]);
-  const y2 = useTransform(scrollY, [0, 500], [0, -100]);
   const scale = useTransform(scrollY, [0, 500], [1, 1.1]);
   const springY1 = useSpring(y1, { stiffness: 100, damping: 30 });
 

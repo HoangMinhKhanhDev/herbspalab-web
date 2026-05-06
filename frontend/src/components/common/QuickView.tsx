@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, Heart, Star } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import LazyImage from './LazyImage';
 
 interface Product {
   name: string;
@@ -35,7 +36,7 @@ const QuickView = ({ product, onClose }: QuickViewProps) => {
             
             <div className="quickview-content">
               <div className="quickview-image">
-                <img src={product.img} alt={product.name} />
+                <LazyImage src={product.img} alt={product.name} />
                 {product.tag && <span className="product-tag">{product.tag}</span>}
               </div>
               
@@ -54,7 +55,7 @@ const QuickView = ({ product, onClose }: QuickViewProps) => {
                   <button 
                     className="btn btn-primary"
                     onClick={() => {
-                      addToCart({ id: Math.random(), name: product.name, price: parseInt(product.price.replace(/\D/g, '')), image: product.img, quantity: 1 });
+                      addToCart({ id: Math.random(), name: product.name, price: parseInt(product.price.replace(/\D/g, '')), image: product.img }, 1);
                       onClose();
                     }}
                   >

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ArrowLeft, CheckCircle, Sparkles, Droplets, ShieldAlert, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Sparkles, Droplets, ShieldAlert, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/common/SEO';
+import LazyImage from '../components/common/LazyImage';
 
 const questions = [
   {
@@ -93,14 +94,14 @@ const SkinQuiz = () => {
                 </div>
 
                 <div className="visual-options">
-                  {questions[step].options.map((opt) => (
+                  {questions[step].options.map((opt: any) => (
                     <motion.button 
                       key={opt.value} 
                       className="visual-opt-card"
                       whileHover={{ y: -10, borderColor: "var(--secondary)" }}
                       onClick={() => handleAnswer(opt.value)}
                     >
-                      {opt.img && <div className="opt-img"><img src={opt.img} alt={opt.label} /></div>}
+                      {opt.img && <div className="opt-img"><LazyImage src={opt.img} alt={opt.label} /></div>}
                       {opt.icon && <div className="opt-icon">{opt.icon}</div>}
                       <div className="opt-content">
                         <h3>{opt.label}</h3>

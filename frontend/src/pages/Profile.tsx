@@ -41,7 +41,7 @@ const Profile = () => {
         <aside className="profile-sidebar" aria-label="Thanh điều hướng hồ sơ">
           <div className="profile-user-info">
             <div className="profile-avatar-wrap">
-              <LazyImage src={user.avatar} alt={`Ảnh đại diện của ${user.name}`} className="profile-avatar" />
+              <LazyImage src={user.avatar || 'https://via.placeholder.com/150'} alt={`Ảnh đại diện của ${user.name}`} className="profile-avatar" />
             </div>
             <h3>{user.name}</h3>
             <p>{user.email}</p>
