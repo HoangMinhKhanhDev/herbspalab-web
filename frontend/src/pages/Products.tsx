@@ -7,19 +7,36 @@ const API_URL = 'http://localhost:5000/api';
 
 const Products = () => {
   const [products, setProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('Tất cả');
+  const [activeCategory, setActiveCategory] = useState('Tất cả');
+  const [activeSkinType, setActiveSkinType] = useState('Tất cả');
+  const [priceRange, setPriceRange] = useState(2000000);
+
+  const categories = ['Tất cả', 'Làm sạch', 'Dưỡng ẩm', 'Trị liệu', 'Chống nắng'];
+  const skinTypes = ['Tất cả', 'Da dầu', 'Da khô', 'Da nhạy cảm', 'Da hỗn hợp'];
 
   useEffect(() => {
-    setLoading(true);
-    fetch(`${API_URL}/products?category=${category}&limit=12`)
+    fetch(`${API_URL}/products`)
       .then(res => res.json())
-      .then(res => {
-        setProducts(res.data);
+      .then(data => {
+        setProducts(data);
+        setFilteredProducts(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [category]);
+  }, []);
+
+  useEffect(() => {
+    const filtered = products.filter(p => {
+      const matchCategory = activeCategory === 'Tất cả' || p.category === activeCategory;
+      const matchPrice = p.price <= priceRange;
+      return matchCategory && matchPrice;
+    });
+    setFilteredProducts(filtered);
+  }, [activeCategory, priceRange, products]);
+
+  if (loading) return <div className="loader-container"><div className="loader"></div></div>;
 
   return (
     <motion.div 
@@ -28,29 +45,59 @@ const Products = () => {
       exit={{ opacity: 0 }} 
       className="page container section"
     >
-      <div className="product-page-header">
-        <h1>Bộ sưu tập sản phẩm</h1>
-        <div className="product-category-filters">
-          {['Tất cả', 'Serum', 'Kem dưỡng', 'Làm sạch', 'Mặt nạ'].map(cat => (
-            <button 
-              key={cat} 
-              className={`cat-btn ${category === cat ? 'active' : ''}`}
-              onClick={() => setCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+      <div className="section-header">
+        <h1 className="section-title">Cửa hàng</h1>
       </div>
-      
-      {loading ? (
-        <div className="loader-container">
-          <div className="loader"></div>
-        </div>
-      ) : (
-        <>
-          <div className="product-catalog-grid">
-            {products.map((p, i) => (
+
+      <div className="products-layout">
+        <aside className="filter-sidebar">
+          <div className="filter-group">
+            <h4>DANH MỤC</h4>
+            <div className="filter-list">
+              {categories.map(c => (
+                <button 
+                  key={c} 
+                  className={`filter-btn ${activeCategory === c ? 'active' : ''}`}
+                  onClick={() => setActiveCategory(c)}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <h4>LOẠI DA</h4>
+            <div className="filter-list">
+              {skinTypes.map(s => (
+                <button 
+                  key={s} 
+                  className={`filter-btn ${activeSkinType === s ? 'active' : ''}`}
+                  onClick={() => setActiveSkinType(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <h4>GIÁ (DƯỚI {priceRange.toLocaleString()}₫)</h4>
+            <input 
+              type="range" 
+              min="100000" 
+              max="3000000" 
+              step="50000"
+              value={priceRange}
+              onChange={(e) => setPriceRange(Number(e.target.value))}
+              className="price-slider"
+            />
+          </div>
+        </aside>
+
+        <main className="products-main">
+          <div className="products-grid-premium">
+            {filteredProducts.map((p, i) => (
               <motion.div 
                 key={p.id} 
                 className="product-card-premium"
@@ -78,11 +125,13 @@ const Products = () => {
               </motion.div>
             ))}
           </div>
-          <div className="pagination">
-             <button className="btn btn-outline">Tải thêm sản phẩm</button>
-          </div>
-        </>
-      )}
+          {filteredProducts.length === 0 && (
+            <div className="no-results">
+              <p>Không tìm thấy sản phẩm phù hợp với bộ lọc của bạn.</p>
+            </div>
+          )}
+        </main>
+      </div>
     </motion.div>
   );
 };

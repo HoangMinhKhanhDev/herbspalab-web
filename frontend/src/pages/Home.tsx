@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 
 const Home = () => {
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+  const y2 = useTransform(scrollY, [0, 500], [0, -150]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+
   const featuredProducts = [
     { name: "Serum Phục Hồi", price: "1.250.000₫", img: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80" },
     { name: "Kem Dưỡng Thảo Mộc", price: "850.000₫", img: "https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=600&q=80" },
@@ -19,8 +24,13 @@ const Home = () => {
       className="page page-transition"
     >
       <section className="hero-section">
+        <motion.div 
+          className="hero-parallax-bg"
+          style={{ y: y2 }}
+        />
         <div className="container hero-content">
           <motion.div
+            style={{ y: y1, opacity }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}

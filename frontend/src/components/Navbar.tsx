@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, User, Menu, X, Search } from 'lucide-react';
+import { ShoppingBag, User, Menu, X, Search, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { useTheme } from '../context/ThemeContext';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { cartCount, setIsCartOpen } = useCart();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
@@ -41,6 +43,9 @@ export const Navbar = () => {
         </div>
 
         <div className="nav-utils">
+          <button className="util-icon theme-toggle" onClick={toggleTheme}>
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
           <Search size={18} className="util-icon" />
           <Link to="/login" className="util-icon"><User size={18} /></Link>
           <div className="cart-util util-icon" onClick={() => setIsCartOpen(true)}>

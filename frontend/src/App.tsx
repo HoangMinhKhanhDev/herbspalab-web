@@ -13,6 +13,7 @@ import About from './pages/About';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import News from './pages/News';
+import SkinQuiz from './pages/SkinQuiz';
 import AdminPanel from './pages/AdminPanel';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -33,6 +34,7 @@ function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/news" element={<News />} />
+            <Route path="/skin-quiz" element={<SkinQuiz />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/admin" element={<AdminPanel />} />
