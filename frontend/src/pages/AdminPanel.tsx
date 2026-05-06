@@ -1,80 +1,130 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Package, FileText, Settings, TrendingUp, Users, ShoppingCart, AlertCircle, Plus, Edit, Trash2 } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  Package, 
+  Newspaper, 
+  Settings, 
+  TrendingUp, 
+  Users, 
+  ShoppingCart, 
+  AlertTriangle,
+  ArrowLeft,
+  ChevronRight,
+  Plus
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const stats = [
-    { label: 'Doanh thu tháng', value: '128.500.000₫', icon: TrendingUp, color: '#10b981' },
-    { label: 'Đơn hàng mới', value: '42', icon: ShoppingCart, color: '#3b82f6' },
-    { label: 'Khách hàng', value: '1,240', icon: Users, color: '#8b5cf6' },
-    { label: 'Sản phẩm hết hàng', value: '5', icon: AlertCircle, color: '#ef4444' },
+    { label: 'Doanh thu tháng', value: '128.500.000₫', icon: TrendingUp, color: '#bca37f' },
+    { label: 'Đơn hàng mới', value: '42', icon: ShoppingCart, color: '#2c3e50' },
+    { label: 'Khách hàng', value: '1,240', icon: Users, color: '#2c3e50' },
+    { label: 'Hết hàng', value: '5', icon: AlertTriangle, color: '#e74c3c' },
   ];
 
   return (
     <div className="admin-layout">
-      {/* Admin Sidebar */}
+      {/* Sidebar */}
       <aside className="admin-sidebar">
-        <div className="admin-brand">
-          <h3>ADMIN HUB</h3>
+        <div className="admin-logo">
+          <h2>ADMIN HUB</h2>
+          <p>HERBSPA LAB LUXURY</p>
         </div>
+        
         <nav className="admin-nav">
-          <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
+          <button 
+            className={activeTab === 'dashboard' ? 'active' : ''} 
+            onClick={() => setActiveTab('dashboard')}
+          >
             <LayoutDashboard size={20} /> Dashboard
           </button>
-          <button className={activeTab === 'inventory' ? 'active' : ''} onClick={() => setActiveTab('inventory')}>
+          <button 
+            className={activeTab === 'inventory' ? 'active' : ''} 
+            onClick={() => setActiveTab('inventory')}
+          >
             <Package size={20} /> Kho hàng
           </button>
-          <button className={activeTab === 'news' ? 'active' : ''} onClick={() => setActiveTab('news')}>
-            <FileText size={20} /> Tin tức
+          <button 
+            className={activeTab === 'news' ? 'active' : ''} 
+            onClick={() => setActiveTab('news')}
+          >
+            <Newspaper size={20} /> Tin tức
           </button>
-          <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
+          <button 
+            className={activeTab === 'settings' ? 'active' : ''} 
+            onClick={() => setActiveTab('settings')}
+          >
             <Settings size={20} /> Cài đặt
           </button>
         </nav>
+
+        <div className="admin-sidebar-footer">
+          <Link to="/" className="back-to-site">
+            <ArrowLeft size={18} /> QUAY VỀ WEBSITE
+          </Link>
+        </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="admin-main">
-        {activeTab === 'dashboard' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="admin-content">
-            <header className="admin-header">
-              <h1>Bảng điều khiển</h1>
-              <p>Chào mừng quay trở lại, Admin.</p>
-            </header>
+        <header className="admin-header">
+          <div className="header-info">
+            <h1>{activeTab === 'dashboard' ? 'Bảng điều khiển' : activeTab.toUpperCase()}</h1>
+            <p>Chào mừng quay trở lại, Admin.</p>
+          </div>
+          <div className="header-actions">
+            <button className="btn btn-outline btn-sm">Xuất báo cáo</button>
+          </div>
+        </header>
 
-            <div className="stats-grid">
-              {stats.map((s, i) => (
-                <div key={i} className="stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: `${s.color}15`, color: s.color }}>
-                    <s.icon size={24} />
+        {activeTab === 'dashboard' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="admin-dashboard"
+          >
+            <div className="admin-stats-grid">
+              {stats.map((stat, i) => (
+                <div key={i} className="admin-stat-card">
+                  <div className="stat-icon" style={{ backgroundColor: stat.color + '15', color: stat.color }}>
+                    <stat.icon size={24} />
                   </div>
                   <div className="stat-info">
-                    <span>{s.label}</span>
-                    <h3>{s.value}</h3>
+                    <span className="stat-label">{stat.label}</span>
+                    <h3 className="stat-value">{stat.value}</h3>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="admin-charts-row">
-              <div className="chart-placeholder">
-                <h4>Biểu đồ doanh thu (7 ngày qua)</h4>
-                <div className="mock-bar-chart">
-                  {[40, 70, 45, 90, 65, 80, 55].map((h, i) => (
-                    <div key={i} className="bar" style={{ height: `${h}%` }}></div>
+            <div className="admin-content-grid">
+              <div className="admin-card chart-card">
+                <h3>Biểu đồ doanh thu (7 ngày qua)</h3>
+                <div className="mock-chart">
+                  {[40, 70, 45, 90, 55, 80, 60].map((h, i) => (
+                    <div key={i} className="chart-bar-wrap">
+                      <div className="chart-bar" style={{ height: `${h}%` }}></div>
+                      <span className="chart-label">T{i+2}</span>
+                    </div>
                   ))}
                 </div>
               </div>
-              <div className="recent-orders">
-                <h4>Đơn hàng gần đây</h4>
-                <div className="order-table-mini">
-                  {[1, 2, 3].map(o => (
-                    <div key={o} className="order-row-mini">
-                      <span>#ORD-882{o}</span>
-                      <span>1.250.000₫</span>
-                      <span className="status-badge success">Hoàn tất</span>
+
+              <div className="admin-card orders-card">
+                <div className="card-header">
+                  <h3>Đơn hàng gần đây</h3>
+                  <button className="text-btn">Xem tất cả</button>
+                </div>
+                <div className="recent-orders">
+                  {[1, 2, 3].map(id => (
+                    <div key={id} className="order-row">
+                      <div className="order-id">#ORD-862{id}</div>
+                      <div className="order-price">1.250.000₫</div>
+                      <div className="order-status success">Hoàn tất</div>
+                      <ChevronRight size={16} />
                     </div>
                   ))}
                 </div>
@@ -84,46 +134,46 @@ const AdminPanel = () => {
         )}
 
         {activeTab === 'inventory' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="admin-content">
-            <header className="admin-header flex-between">
-              <h1>Quản lý Kho hàng</h1>
-              <button className="btn btn-primary"><Plus size={18} /> Thêm sản phẩm</button>
-            </header>
-            
+          <div className="admin-card">
+            <div className="card-header">
+              <h3>Quản lý Kho hàng</h3>
+              <button className="btn btn-primary btn-sm">Thêm sản phẩm</button>
+            </div>
             <table className="admin-table">
               <thead>
                 <tr>
                   <th>Sản phẩm</th>
                   <th>Danh mục</th>
-                  <th>Giá</th>
                   <th>Tồn kho</th>
-                  <th>Hành động</th>
+                  <th>Giá</th>
+                  <th>Trạng thái</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="product-td"><img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=50&q=80" alt="" /> Serum Phục Hồi</td>
-                  <td>Trị liệu</td>
+                  <td>Serum Phục Hồi</td>
+                  <td>Dưỡng da</td>
+                  <td>8</td>
                   <td>1.250.000₫</td>
-                  <td><span className="stock-warning">5 (Sắp hết)</span></td>
-                  <td className="actions-td">
-                    <button><Edit size={16} /></button>
-                    <button><Trash2 size={16} /></button>
-                  </td>
+                  <td><span className="status-pill warning">Sắp hết</span></td>
                 </tr>
                 <tr>
-                  <td className="product-td"><img src="https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=50&q=80" alt="" /> Kem Thảo Mộc</td>
-                  <td>Dưỡng ẩm</td>
+                  <td>Kem Dưỡng Thảo Mộc</td>
+                  <td>Dưỡng da</td>
+                  <td>24</td>
                   <td>850.000₫</td>
-                  <td>45</td>
-                  <td className="actions-td">
-                    <button><Edit size={16} /></button>
-                    <button><Trash2 size={16} /></button>
-                  </td>
+                  <td><span className="status-pill success">Còn hàng</span></td>
+                </tr>
+                <tr>
+                  <td>Mặt Nạ Thải Độc</td>
+                  <td>Làm sạch</td>
+                  <td>12</td>
+                  <td>450.000₫</td>
+                  <td><span className="status-pill success">Còn hàng</span></td>
                 </tr>
               </tbody>
             </table>
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'news' && (
