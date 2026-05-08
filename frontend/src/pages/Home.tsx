@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Eye, ShoppingCart, ArrowRight, Sparkles, ShieldCheck, Leaf, Droplets, FlaskConical, Globe } from 'lucide-react';
@@ -41,29 +41,41 @@ const Counter = ({ value, label, suffix = "" }: { value: number, label: string, 
 };
 
 const FloatingPetals = () => {
+  const petals = useMemo(() => {
+    return [...Array(12)].map((_, i) => ({
+      id: i,
+      startX: ((i * 37) % 100) + "vw",
+      scale: 0.6 + ((i * 13) % 40) / 100,
+      endX: `calc(${((i * 23) % 100)}vw + ${Math.sin(i) * 150}px)`,
+      rotate: i % 2 === 0 ? 360 : -360,
+      duration: 12 + ((i * 7) % 15),
+      delay: (i * 3) % 20,
+    }));
+  }, []);
+
   return (
     <div className="floating-petals">
-      {[...Array(12)].map((_, i) => (
+      {petals.map((p) => (
         <motion.div
-          key={i}
-          className={`petal petal-${i % 3}`}
+          key={p.id}
+          className={`petal petal-${p.id % 3}`}
           initial={{ 
-            x: Math.random() * 100 + "vw", 
+            x: p.startX, 
             y: -100, 
             rotate: 0,
             opacity: 0,
-            scale: Math.random() * 0.4 + 0.6
+            scale: p.scale
           }}
           animate={{ 
             y: "110vh",
-            x: `calc(${Math.random() * 100}vw + ${Math.sin(i) * 150}px)`,
-            rotate: 360 * (Math.random() > 0.5 ? 1 : -1),
+            x: p.endX,
+            rotate: p.rotate,
             opacity: [0, 0.5, 0.5, 0]
           }}
           transition={{
-            duration: 12 + Math.random() * 15,
+            duration: p.duration,
             repeat: Infinity,
-            delay: Math.random() * 20,
+            delay: p.delay,
             ease: "linear"
           }}
         >
@@ -76,8 +88,16 @@ const FloatingPetals = () => {
   );
 };
 
+interface FeaturedProduct {
+  id: number;
+  name: string;
+  price: string;
+  img: string;
+  tag?: string;
+}
+
 const Home = () => {
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<FeaturedProduct | null>(null);
   
   // Slider Logic
   const [[page, direction], setPage] = useState([0, 0]);
@@ -110,14 +130,14 @@ const Home = () => {
 
   const slideIndex = Math.abs(page % slides.length);
 
-  const paginate = (newDirection: number) => {
+  const paginate = useCallback((newDirection: number) => {
     setPage([page + newDirection, newDirection]);
-  };
+  }, [page]);
 
   useEffect(() => {
     const timer = setInterval(() => paginate(1), 8000);
     return () => clearInterval(timer);
-  }, [page]);
+  }, [paginate]);
 
   const slideVariants = {
     enter: (direction: number) => ({

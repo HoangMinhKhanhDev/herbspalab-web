@@ -8,9 +8,19 @@ import LazyImage from '../components/common/LazyImage';
 
 const API_URL = 'http://localhost:5000/api';
 
+interface ProductDetailData {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  description: string;
+  rating: number;
+}
+
 const ProductDetail = () => {
   const { id } = useParams();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<ProductDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();

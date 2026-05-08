@@ -5,7 +5,22 @@ import { Link } from 'react-router-dom';
 import SEO from '../components/common/SEO';
 import LazyImage from '../components/common/LazyImage';
 
-const questions = [
+interface QuestionOption {
+  label: string;
+  desc: string;
+  value: string;
+  img?: string;
+  icon?: JSX.Element;
+}
+
+interface Question {
+  id: number;
+  question: string;
+  subtitle: string;
+  options: QuestionOption[];
+}
+
+const questions: Question[] = [
   {
     id: 1,
     question: "Tình trạng da hiện tại của bạn như thế nào?",
@@ -42,7 +57,7 @@ const questions = [
 
 const SkinQuiz = () => {
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<any>({});
+  const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResult, setShowResult] = useState(false);
 
   const handleAnswer = (value: string) => {
@@ -94,7 +109,7 @@ const SkinQuiz = () => {
                 </div>
 
                 <div className="visual-options">
-                  {questions[step].options.map((opt: any) => (
+                  {questions[step].options.map((opt) => (
                     <motion.button 
                       key={opt.value} 
                       className="visual-opt-card"

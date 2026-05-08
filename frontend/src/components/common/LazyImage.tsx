@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface LazyImageProps {
@@ -9,12 +9,7 @@ interface LazyImageProps {
 
 const LazyImage = ({ src, alt, className }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [blurSrc, setBlurSrc] = useState('');
-
-  useEffect(() => {
-    // Simulate a tiny placeholder or use a colored box
-    setBlurSrc(`${src}&blur=50&w=20`);
-  }, [src]);
+  const blurSrc = `${src}&blur=50&w=20`;
 
   return (
     <div className={`lazy-image-container ${className}`} style={{ position: 'relative', overflow: 'hidden' }}>

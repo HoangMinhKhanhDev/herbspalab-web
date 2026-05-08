@@ -1,16 +1,21 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface CartItem {
+interface Product {
   id: number;
   name: string;
   price: number;
   image: string;
+  category?: string;
+}
+
+interface CartItem extends Product {
   quantity: number;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: any, quantity: number) => void;
+  addToCart: (product: Product, quantity: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -33,7 +38,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: any, quantity: number) => {
+  const addToCart = (product: Product, quantity: number) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id);
       if (existingItem) {

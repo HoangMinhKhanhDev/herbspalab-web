@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Heart, X, ChevronDown, SlidersHorizontal, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,9 +8,17 @@ import LazyImage from '../components/common/LazyImage';
 
 const API_URL = 'http://localhost:5000/api';
 
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  description?: string;
+}
+
 const Products = () => {
-  const [products, setProducts] = useState<any[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('Tất cả');
   const [activeSkinType, setActiveSkinType] = useState('Tất cả');
@@ -27,20 +35,18 @@ const Products = () => {
       .then(data => {
         const productList = Array.isArray(data) ? data : (data.data || []);
         setProducts(productList);
-        setFilteredProducts(productList);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    const filtered = products.filter(p => {
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
       const matchCategory = activeCategory === 'Tất cả' || p.category === activeCategory;
       const matchPrice = p.price <= priceRange;
       const matchSkin = activeSkinType === 'Tất cả' || (p.description && p.description.includes(activeSkinType));
       return matchCategory && matchPrice && matchSkin;
     });
-    setFilteredProducts(filtered);
   }, [activeCategory, priceRange, products, activeSkinType]);
 
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;

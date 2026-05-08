@@ -1,16 +1,24 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+interface Product {
+  id: number;
+  name: string;
+  price: number | string;
+  image: string;
+}
+
 interface WishlistContextType {
-  wishlist: any[];
-  addToWishlist: (product: any) => void;
-  removeFromWishlist: (productId: string) => void;
-  isInWishlist: (productId: string) => boolean;
+  wishlist: Product[];
+  addToWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: number) => void;
+  isInWishlist: (productId: number) => boolean;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [wishlist, setWishlist] = useState<any[]>(() => {
+  const [wishlist, setWishlist] = useState<Product[]>(() => {
     const saved = localStorage.getItem('wishlist');
     return saved ? JSON.parse(saved) : [];
   });
@@ -19,17 +27,17 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
 
-  const addToWishlist = (product: any) => {
+  const addToWishlist = (product: Product) => {
     if (!isInWishlist(product.id)) {
       setWishlist([...wishlist, product]);
     }
   };
 
-  const removeFromWishlist = (productId: string) => {
+  const removeFromWishlist = (productId: number) => {
     setWishlist(wishlist.filter(item => item.id !== productId));
   };
 
-  const isInWishlist = (productId: string) => {
+  const isInWishlist = (productId: number) => {
     return wishlist.some(item => item.id === productId);
   };
 
