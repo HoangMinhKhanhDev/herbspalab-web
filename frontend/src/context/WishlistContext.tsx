@@ -6,6 +6,7 @@ interface Product {
   name: string;
   price: number | string;
   image: string;
+  category?: string;
 }
 
 interface WishlistContextType {

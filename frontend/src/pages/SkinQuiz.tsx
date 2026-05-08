@@ -10,7 +10,7 @@ interface QuestionOption {
   desc: string;
   value: string;
   img?: string;
-  icon?: JSX.Element;
+  icon?: React.ReactNode;
 }
 
 interface Question {
