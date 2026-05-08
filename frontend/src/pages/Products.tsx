@@ -174,7 +174,12 @@ const Products = () => {
                 >
                   <div className="card-img-wrapper">
                     <Link to={`/product/${p.id}`}>
-                      <LazyImage src={p.image} alt={p.name} />
+                      <LazyImage 
+                        src={p.image} 
+                        alt={p.name} 
+                        width={300} 
+                        height={400} 
+                      />
                     </Link>
                     <span className="card-tag">{p.category}</span>
                     <button 

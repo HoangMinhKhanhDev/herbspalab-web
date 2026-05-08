@@ -211,7 +211,14 @@ const Home = () => {
             className="hero-slide"
           >
             <div className="slide-bg">
-              <img src={slides[slideIndex].img} alt={slides[slideIndex].title} />
+              <img 
+                src={slides[slideIndex].img} 
+                alt={slides[slideIndex].title} 
+                width="1920"
+                height="1080"
+                fetchPriority={slideIndex === 0 ? "high" : "auto"}
+                loading="eager"
+              />
               <div className="slide-overlay"></div>
             </div>
             
@@ -409,7 +416,13 @@ const Home = () => {
               <Reveal key={product.id} delay={idx * 0.15}>
                 <div className="luxury-card interactive">
                   <div className="luxury-card-img">
-                    <img src={product.img} alt={product.name} />
+                    <img 
+                      src={product.img} 
+                      alt={product.name} 
+                      width="400" 
+                      height="500" 
+                      loading="lazy" 
+                    />
                     <div className="luxury-card-overlay">
                       <div className="luxury-action-group">
                         <button className="btn-luxury-icon" onClick={() => setSelectedProduct(product)}>

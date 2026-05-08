@@ -5,9 +5,11 @@ interface LazyImageProps {
   src: string;
   alt: string;
   className?: string;
+  width?: string | number;
+  height?: string | number;
 }
 
-const LazyImage = ({ src, alt, className }: LazyImageProps) => {
+const LazyImage = ({ src, alt, className, width, height }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const blurSrc = `${src}&blur=50&w=20`;
 
@@ -21,6 +23,8 @@ const LazyImage = ({ src, alt, className }: LazyImageProps) => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="blur-placeholder"
+            width={width}
+            height={height}
             style={{ 
               width: '100%', 
               height: '100%', 
@@ -40,6 +44,8 @@ const LazyImage = ({ src, alt, className }: LazyImageProps) => {
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.8 }}
         onLoad={() => setIsLoaded(true)}
+        width={width}
+        height={height}
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       />
     </div>

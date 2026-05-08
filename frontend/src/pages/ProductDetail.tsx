@@ -59,6 +59,8 @@ const ProductDetail = () => {
           <LazyImage 
             src={product.image} 
             alt={`Hình ảnh sản phẩm ${product.name}`} 
+            width={600}
+            height={800}
           />
         </div>
 
