@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 interface RevealProps {
   children: React.ReactNode;
   width?: string;
+  delay?: number;
 }
 
-export const Reveal = ({ children, width = "fit-content" }: RevealProps) => {
+export const Reveal = ({ children, width = "fit-content", delay = 0.25 }: RevealProps) => {
   return (
     <div style={{ position: "relative", width, overflow: "hidden" }}>
       <motion.div
@@ -16,7 +17,7 @@ export const Reveal = ({ children, width = "fit-content" }: RevealProps) => {
         }}
         initial="hidden"
         whileInView="visible"
-        transition={{ duration: 0.5, delay: 0.25 }}
+        transition={{ duration: 0.5, delay }}
       >
         {children}
       </motion.div>

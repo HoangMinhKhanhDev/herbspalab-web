@@ -1,31 +1,42 @@
 import { Link } from 'react-router-dom';
-import { Globe, Share2, Mail, ArrowRight } from 'lucide-react';
+import { Globe, Share2, Mail, ArrowRight, Phone, MapPin } from 'lucide-react';
 
 export const Footer = () => (
   <footer className="modern-footer" role="contentinfo" aria-label="Chân trang">
     <div className="container footer-main">
       <div className="footer-intro">
-        <h2 className="brand-logo">HERBSPA LAB</h2>
-        <p>Kiến tạo vẻ đẹp bền vững từ lòng đất mẹ. Chúng tôi mang đến những giải pháp chăm sóc da thuần chay, an toàn và hiệu quả cao.</p>
+        <div className="footer-logo-wrap">
+          <img src="/assets/images/logo.svg" alt="HerbSpaLab Logo" className="footer-logo-img" />
+          <h2 className="brand-logo">HERBSPALAB</h2>
+        </div>
+        <p>Sản xuất và gia công Mỹ phẩm với định hướng An toàn cho sức khỏe – Minh bạch pháp lý – Đồng hành cùng thương hiệu Việt.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Phone size={14} /> <span>Hotline: <strong>0972 245 219</strong></span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <MapPin size={14} style={{ flexShrink: 0, marginTop: '2px' }} /> <span>Ngách 6, ngõ 23, đường Đầm Vạc, Khu 7, Đống Đa, Vĩnh Yên, Vĩnh Phúc</span>
+          </div>
+        </div>
         <div className="footer-social" aria-label="Liên kết mạng xã hội">
-          <a href="#" aria-label="Website chính thức"><Globe size={20} aria-hidden="true" /></a>
+          <a href="https://www.facebook.com/profile.php?id=100063609218498" target="_blank" rel="noopener noreferrer" aria-label="Facebook Fanpage"><Globe size={20} aria-hidden="true" /></a>
           <a href="#" aria-label="Chia sẻ qua mạng xã hội"><Share2 size={20} aria-hidden="true" /></a>
-          <a href="mailto:contact@herbspalab.com" aria-label="Gửi email cho chúng tôi"><Mail size={20} aria-hidden="true" /></a>
+          <a href="mailto:contact@thuhuyen-smilespa.com" aria-label="Gửi email cho chúng tôi"><Mail size={20} aria-hidden="true" /></a>
         </div>
       </div>
       <nav className="footer-nav-col" aria-label="Liên kết công ty">
         <h4>CÔNG TY</h4>
-        <Link to="/about">Câu chuyện thương hiệu</Link>
-        <Link to="/news">Tạp chí làm đẹp</Link>
-        <Link to="#">Tuyển dụng</Link>
-        <Link to="#">Liên hệ</Link>
+        <Link to="/about">Giới thiệu công ty</Link>
+        <Link to="/about">Tầm nhìn & Sứ mệnh</Link>
+        <Link to="/products">Sản phẩm</Link>
+        <Link to="/news">Tin tức</Link>
       </nav>
-      <nav className="footer-nav-col" aria-label="Liên kết hỗ trợ">
-        <h4>HỖ TRỢ</h4>
-        <Link to="#">Chính sách đổi trả</Link>
-        <Link to="#">Vận chuyển & Giao nhận</Link>
-        <Link to="#">Điều khoản sử dụng</Link>
-        <Link to="#">Bảo mật thông tin</Link>
+      <nav className="footer-nav-col" aria-label="Liên kết dịch vụ">
+        <h4>DỊCH VỤ</h4>
+        <Link to="/about">Gia công mỹ phẩm</Link>
+        <Link to="/skin-quiz">Tư vấn công thức</Link>
+        <Link to="/about">Trị mụn chuyên sâu</Link>
+        <Link to="/about">Chăm sóc da</Link>
       </nav>
       <div className="footer-newsletter">
         <h4>NHẬN TIN TỨC</h4>
@@ -44,7 +55,7 @@ export const Footer = () => (
       </div>
     </div>
     <div className="footer-copyright">
-      <p>© 2026 Herbspa Lab. Thiết kế chuyên nghiệp cho làn da của bạn.</p>
+      <p>© 2024 HerbSpaLab. MST: 2500712979. Giám đốc: Nguyễn Thị Thu Huyền.</p>
     </div>
   </footer>
 );

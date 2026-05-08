@@ -44,7 +44,10 @@ export const Navbar = () => {
     <>
     <nav className={`premium-nav ${isScrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Menu chính">
       <div className="container nav-wrap">
-        <Link to="/" className="brand-logo" aria-label="HerbSpa Lab - Quay về trang chủ">HERBSPA LAB</Link>
+        <Link to="/" className="brand-logo" aria-label="HerbSpaLab - Quay về trang chủ">
+          <img src="/assets/images/logo.svg" alt="HerbSpaLab Logo" className="nav-logo-img" />
+          <span>HERBSPALAB</span>
+        </Link>
         
         <div className="desktop-links" role="menubar">
           {navLinks.map((link) => (
@@ -127,7 +130,7 @@ export const Navbar = () => {
               aria-label="Menu di động"
             >
               <div className="side-menu-header">
-                <span className="side-brand">HERBSPA LAB</span>
+                <span className="hero-tag interactive">HERBSPALAB</span>
                 <button className="close-side" onClick={() => setIsMenuOpen(false)} aria-label="Đóng menu"><X size={24} /></button>
               </div>
               

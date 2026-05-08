@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Heart, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { ShoppingBag, Heart, X, ChevronDown, SlidersHorizontal, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import SEO from '../components/common/SEO';

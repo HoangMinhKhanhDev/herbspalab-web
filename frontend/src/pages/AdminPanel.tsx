@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, 
   Package, 
@@ -8,9 +8,7 @@ import {
   TrendingUp, 
   Users, 
   ShoppingCart, 
-  AlertTriangle,
   ArrowLeft,
-  ChevronRight,
   Plus,
   X,
   Save,
