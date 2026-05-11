@@ -3,24 +3,44 @@ import { useEffect } from 'react';
 interface SEOProps {
   title: string;
   description?: string;
+  image?: string;
+  url?: string;
 }
 
-const SEO = ({ title, description }: SEOProps) => {
+const SEO = ({ title, description, image, url }: SEOProps) => {
   useEffect(() => {
-    document.title = `${title} | HerbSpa Lab`;
+    const siteTitle = 'HerbSpa Lab';
+    const fullTitle = `${title} | ${siteTitle}`;
+    document.title = fullTitle;
     
-    if (description) {
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', description);
+    // Helper function to update meta tags
+    const updateMetaTag = (attribute: string, value: string, content: string) => {
+      let element = document.querySelector(`meta[${attribute}="${value}"]`);
+      if (element) {
+        element.setAttribute('content', content);
       } else {
         const meta = document.createElement('meta');
-        meta.name = 'description';
-        meta.content = description;
+        meta.setAttribute(attribute, value);
+        meta.setAttribute('content', content);
         document.head.appendChild(meta);
       }
+    };
+
+    if (description) {
+      updateMetaTag('name', 'description', description);
+      updateMetaTag('property', 'og:description', description);
     }
-  }, [title, description]);
+
+    updateMetaTag('property', 'og:title', fullTitle);
+    
+    if (image) {
+      updateMetaTag('property', 'og:image', image);
+    }
+
+    if (url) {
+      updateMetaTag('property', 'og:url', url);
+    }
+  }, [title, description, image, url]);
 
   return null;
 };

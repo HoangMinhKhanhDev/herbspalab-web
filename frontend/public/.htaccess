@@ -1,34 +1,87 @@
 # ═══════════════════════════════════════
-# OPTIMIZATION & SECURITY - HERBSPA LAB
+# HERBSPA LAB - OPTIMIZATION & SECURITY
 # ═══════════════════════════════════════
 
-# 1. Bật Gzip Compression (Giảm dung lượng file truyền tải)
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/plain
-    AddOutputFilterByType DEFLATE text/html
-    AddOutputFilterByType DEFLATE text/xml
-    AddOutputFilterByType DEFLATE text/css
-    AddOutputFilterByType DEFLATE text/javascript
-    AddOutputFilterByType DEFLATE application/xml
-    AddOutputFilterByType DEFLATE application/xhtml+xml
-    AddOutputFilterByType DEFLATE application/rss+xml
-    AddOutputFilterByType DEFLATE application/javascript
-    AddOutputFilterByType DEFLATE application/x-javascript
-    AddOutputFilterByType DEFLATE application/x-font-ttf
-    AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
-    AddOutputFilterByType DEFLATE image/svg+xml
-    AddOutputFilterByType DEFLATE image/x-icon
+# 1. SERVER CONFIGURATION
+# ───────────────────────────────────────
+# Vô hiệu hóa xem thư ký (Folder browsing)
+Options -Indexes
+
+# Chặn truy cập vào các file nhạy cảm
+<FilesMatch "^(\.env|\.git|package\.json|package-lock\.json|composer\.json|tsconfig\.json|vite\.config\.ts)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 2. BOT MITIGATION & MALICIOUS ACCESS
+# ───────────────────────────────────────
+# Chặn các cuộc quét WordPress (Dựa trên Log thực tế)
+Redirect 403 /wp-admin
+Redirect 403 /wp-login.php
+Redirect 403 /xmlrpc.php
+Redirect 403 /wp-content
+Redirect 403 /wp-includes
+
+# Chặn các chuỗi truy vấn nguy hiểm (SQL Injection, XSS cơ bản)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Force HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Chặn script injection trong URL
+    RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} GLOBALS(=|[|%[0-9A-Z]{0,2}) [OR]
+    RewriteCond %{QUERY_STRING} _REQUEST(=|[|%[0-9A-Z]{0,2})
+    RewriteRule ^(.*)$ - [F,L]
+
+    # SPA Routing (React/Vite)
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
 </IfModule>
 
-# 2. Bật Browser Caching (Lưu cache trên trình duyệt khách)
+# 3. SECURITY HEADERS
+# ───────────────────────────────────────
+<IfModule mod_headers.c>
+    # Bảo vệ chống XSS và Clickjacking
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # HSTS (Lực lượng HTTPS trong 1 năm)
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    
+    # Permissions Policy (Hạn chế quyền trình duyệt)
+    Header set Permissions-Policy "geolocation=(), midi=(), sync-xhr=(), microphone=(), camera=(), magnetometer=(), gyroscope=(), fullscreen=(self), payment=()"
+    
+    # Content Security Policy (CSP) - Cần điều chỉnh nếu dùng script ngoài
+    # Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';"
+</IfModule>
+
+# 4. PERFORMANCE - GZIP COMPRESSION
+# ───────────────────────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript
+    AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+    AddOutputFilterByType DEFLATE application/x-font-ttf application/vnd.ms-fontobject
+    AddOutputFilterByType DEFLATE image/svg+xml image/x-icon
+</IfModule>
+
+# 5. PERFORMANCE - BROWSER CACHING
+# ───────────────────────────────────────
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresDefault "access plus 1 month"
     
-    # Images
+    # Media
     ExpiresByType image/jpg "access plus 1 year"
     ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/gif "access plus 1 year"
     ExpiresByType image/png "access plus 1 year"
     ExpiresByType image/webp "access plus 1 year"
     ExpiresByType image/svg+xml "access plus 1 year"
@@ -37,26 +90,8 @@
     ExpiresByType text/css "access plus 1 month"
     ExpiresByType application/javascript "access plus 1 month"
     
-    # Fonts
-    ExpiresByType application/x-font-ttf "access plus 1 year"
-    ExpiresByType application/font-woff "access plus 1 year"
-    ExpiresByType application/font-woff2 "access plus 1 year"
-</IfModule>
-
-# 3. SPA Routing (Xử lý lỗi 404 khi refresh trang React)
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
-    RewriteRule ^index\.html$ - [L]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule . /index.html [L]
-</IfModule>
-
-# 4. Security Headers
-<IfModule mod_headers.c>
-    Header set X-XSS-Protection "1; mode=block"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-Content-Type-Options "nosniff"
-    Header set Referrer-Policy "no-referrer-when-downgrade"
+    # Webfonts
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>
