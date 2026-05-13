@@ -6,50 +6,79 @@ import { useWishlist } from '../context/WishlistContext';
 import SEO from '../components/common/SEO';
 import LazyImage from '../components/common/LazyImage';
 
-const API_URL = 'http://localhost:5000/api';
+import { fetchProducts } from '../api/productApi';
+import { fetchCategories } from '../api/categoryApi';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   price: number;
-  image: string;
-  category: string;
+  images: { url: string }[];
+  categoryId?: string;
+  category?: { name: string };
   description?: string;
 }
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('Tất cả');
+  const [error, setError] = useState<string | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState('all');
   const [activeSkinType, setActiveSkinType] = useState('Tất cả');
-  const [priceRange, setPriceRange] = useState(2000000);
+  const [priceRange, setPriceRange] = useState(3000000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
-  const categories = ['Tất cả', 'Làm sạch', 'Dưỡng ẩm', 'Trị liệu', 'Chống nắng'];
   const skinTypes = ['Tất cả', 'Da dầu', 'Da khô', 'Da nhạy cảm', 'Da hỗn hợp'];
 
   useEffect(() => {
-    fetch(`${API_URL}/products`)
-      .then(res => res.json())
-      .then(data => {
-        const productList = Array.isArray(data) ? data : (data.data || []);
-        setProducts(productList);
+    const loadCategories = async () => {
+      try {
+        const res = await fetchCategories();
+        // API returns array directly, not wrapped
+        const cats = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+        setCategories(cats);
+      } catch (err) {
+        console.error('Failed to load categories', err);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const params: any = {};
+    if (activeCategoryId !== 'all') params.categoryId = activeCategoryId;
+    
+    fetchProducts(params)
+      .then(res => {
+        const data = res.data?.data ?? res.data;
+        setProducts(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
-  }, []);
+      .catch(err => {
+        console.error('Failed to load products', err);
+        setError('Không thể tải sản phẩm. Vui lòng thử lại sau.');
+        setLoading(false);
+      });
+  }, [activeCategoryId]);
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      const matchCategory = activeCategory === 'Tất cả' || p.category === activeCategory;
       const matchPrice = p.price <= priceRange;
       const matchSkin = activeSkinType === 'Tất cả' || (p.description && p.description.includes(activeSkinType));
-      return matchCategory && matchPrice && matchSkin;
+      return matchPrice && matchSkin;
     });
-  }, [activeCategory, priceRange, products, activeSkinType]);
+  }, [priceRange, products, activeSkinType]);
 
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
+  if (error) return (
+    <div className="loader-container" style={{flexDirection:'column',gap:'1rem',color:'var(--secondary)'}}>
+      <p>{error}</p>
+      <button className="btn-outline" onClick={() => window.location.reload()}>Thử lại</button>
+    </div>
+  );
 
   return (
     <motion.div 
@@ -99,13 +128,19 @@ const Products = () => {
             <div className="filter-section">
               <h4 className="filter-title">DANH MỤC</h4>
               <div className="filter-options">
+                <button 
+                  className={`pill-filter ${activeCategoryId === 'all' ? 'active' : ''}`}
+                  onClick={() => setActiveCategoryId('all')}
+                >
+                  Tất cả
+                </button>
                 {categories.map(c => (
                   <button 
-                    key={c} 
-                    className={`pill-filter ${activeCategory === c ? 'active' : ''}`}
-                    onClick={() => setActiveCategory(c)}
+                    key={c.id} 
+                    className={`pill-filter ${activeCategoryId === c.id ? 'active' : ''}`}
+                    onClick={() => setActiveCategoryId(c.id)}
                   >
-                    {c}
+                    {c.name}
                   </button>
                 ))}
               </div>
@@ -175,16 +210,22 @@ const Products = () => {
                   <div className="card-img-wrapper">
                     <Link to={`/product/${p.id}`}>
                       <LazyImage 
-                        src={p.image} 
+                        src={p.images?.[0]?.url || 'https://via.placeholder.com/300x400'} 
                         alt={p.name} 
                         width={300} 
                         height={400} 
                       />
                     </Link>
-                    <span className="card-tag">{p.category}</span>
+                    <span className="card-tag">{p.category?.name || 'Thảo mộc'}</span>
                     <button 
                       className="wishlist-btn-premium"
-                      onClick={() => isInWishlist(p.id) ? removeFromWishlist(p.id) : addToWishlist(p)}
+                      onClick={() => isInWishlist(p.id) ? removeFromWishlist(p.id) : addToWishlist({ 
+                        id: p.id, 
+                        name: p.name, 
+                        price: p.price, 
+                        image: p.images?.[0]?.url || '',
+                        category: p.category?.name
+                      })}
                     >
                       <Heart 
                         size={18} 
@@ -217,7 +258,7 @@ const Products = () => {
               <Search size={48} />
               <h3>Không tìm thấy sản phẩm</h3>
               <p>Thử thay đổi bộ lọc hoặc tìm kiếm theo từ khóa khác.</p>
-              <button className="btn-outline" onClick={() => {setActiveCategory('Tất cả'); setPriceRange(3000000);}}>
+              <button className="btn-outline" onClick={() => {setActiveCategoryId('all'); setPriceRange(3000000);}}>
                 XÓA TẤT CẢ BỘ LỌC
               </button>
             </motion.div>

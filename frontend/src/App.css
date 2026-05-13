@@ -1,10 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap');
+
 /* 
   Herbspa Lab - Professional Design System 
   Aesthetic: Organic Luxury, Botanical Premium
-  Inspired by Thảnh Thơi Farm Reference
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap');
+html, body, #root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  overflow-x: hidden;
+}
 
 :root {
   /* Core Colors - HSL Organic Palette */
@@ -798,14 +805,60 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Layout Wrapper */
 .app-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+  width: 100vw !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.app-wrapper.auth-page .premium-nav {
+  background: rgba(10, 15, 12, 0.7);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.app-wrapper.auth-page .premium-nav .desktop-links a,
+.app-wrapper.auth-page .premium-nav .brand-logo,
+.app-wrapper.auth-page .premium-nav .util-icon {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+.app-wrapper.auth-page .premium-nav .brand-logo img {
+  filter: brightness(0) invert(1);
+}
+
+/* Ensure Footer visibility on auth pages */
+.app-wrapper.auth-page .modern-footer {
+  background: rgba(10, 15, 12, 0.95);
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.app-wrapper.auth-page .main-content {
+  padding-top: 0;
 }
 
 .main-content {
   flex: 1;
+  width: 100%;
+  max-width: none;
+  min-width: 100%;
   padding-top: var(--nav-height);
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content > * {
+  width: 100% !important;
 }
 
 .page {
@@ -4375,6 +4428,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .luxury-slider {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   height: 4px;
   background: var(--border);
@@ -5907,4 +5961,49 @@ h1, h2, h3, h4, h5, h6 {
   .slide-title { font-size: 3.5rem; }
   .slider-ctrl { display: none; }
   .hero-slider-container { height: 80vh; }
+}
+
+/* --- Luxury Quill Editor --- */
+.luxury-quill .ql-toolbar.ql-snow {
+  border: none !important;
+  background: #1a241b;
+  padding: 1rem 2rem !important;
+  border-radius: 2rem 2rem 0 0;
+}
+
+.luxury-quill .ql-toolbar.ql-snow .ql-stroke {
+  stroke: #bca37f !important;
+}
+
+.luxury-quill .ql-toolbar.ql-snow .ql-fill {
+  fill: #bca37f !important;
+}
+
+.luxury-quill .ql-toolbar.ql-snow .ql-picker {
+  color: #bca37f !important;
+}
+
+.luxury-quill .ql-container.ql-snow {
+  border: none !important;
+  background: white;
+  min-height: 400px;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 16px !important;
+  color: #1a241b !important;
+  border-radius: 0 0 2rem 2rem;
+}
+
+.luxury-quill .ql-editor {
+  padding: 2rem 3rem !important;
+  line-height: 1.8 !important;
+}
+
+.luxury-quill .ql-editor.ql-blank::before {
+  color: #1a241b;
+  opacity: 0.2;
+  font-style: italic;
+}
+
+.luxury-quill .ql-active .ql-stroke {
+  stroke: white !important;
 }

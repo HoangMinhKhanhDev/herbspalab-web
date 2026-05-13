@@ -4,19 +4,59 @@ import { useCart } from '../context/CartContext';
 import { ChevronRight, MapPin, CreditCard, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/common/SEO';
+import { createOrder } from '../api/orderApi';
 
 const steps = ['Thông tin', 'Thanh toán', 'Hoàn tất'];
 
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const { cart, cartTotal } = useCart();
+  const { cart, cartTotal, clearCart } = useCart();
+  const [loading, setLoading] = useState(false);
+  const [orderId, setOrderId] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     address: '',
-    city: '',
-    paymentMethod: 'cod'
+    city: 'Hà Nội',
+    paymentMethod: 'Stripe' // default to Stripe for premium feel
   });
+
+  const handlePlaceOrder = async () => {
+    try {
+      setLoading(true);
+      const orderData = {
+        orderItems: cart.map(item => ({
+          name: item.name,
+          qty: item.quantity,
+          image: item.image,
+          price: item.price,
+          product: item.id,
+        })),
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          phone: formData.phone,
+          name: formData.name
+        },
+        paymentMethod: formData.paymentMethod,
+        totalPrice: cartTotal + 30000,
+      };
+
+      const { data } = await createOrder(orderData);
+      
+      if (data.stripeUrl) {
+        window.location.href = data.stripeUrl;
+      } else {
+        setOrderId(data.id);
+        clearCart();
+        nextStep();
+      }
+    } catch (error) {
+      alert('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
@@ -62,11 +102,10 @@ const Checkout = () => {
                 >
                   <h3><MapPin size={20} /> Thông tin giao hàng</h3>
                   <div className="form-grid">
-                    <input type="text" placeholder="Họ và tên" className="premium-input" />
-                    <input type="text" placeholder="Số điện thoại" className="premium-input" />
-                    <input type="text" placeholder="Địa chỉ chi tiết" className="premium-input full" />
-                    <select className="premium-input">
-                      <option>Thành phố / Tỉnh</option>
+                    <input type="text" placeholder="Họ và tên" className="premium-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                    <input type="text" placeholder="Số điện thoại" className="premium-input" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
+                    <input type="text" placeholder="Địa chỉ chi tiết" className="premium-input full" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                    <select className="premium-input" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})}>
                       <option>Hà Nội</option>
                       <option>TP. Hồ Chí Minh</option>
                       <option>Đà Nẵng</option>
@@ -88,24 +127,26 @@ const Checkout = () => {
                 >
                   <h3><CreditCard size={20} /> Phương thức thanh toán</h3>
                   <div className="payment-options">
-                    <label className={`payment-card ${formData.paymentMethod === 'cod' ? 'active' : ''}`}>
-                      <input type="radio" name="payment" value="cod" checked={formData.paymentMethod === 'cod'} onChange={() => setFormData({...formData, paymentMethod: 'cod'})} />
+                    <label className={`payment-card ${formData.paymentMethod === 'Stripe' ? 'active' : ''}`}>
+                      <input type="radio" name="payment" value="Stripe" checked={formData.paymentMethod === 'Stripe'} onChange={() => setFormData({...formData, paymentMethod: 'Stripe'})} />
                       <div className="payment-info">
-                        <strong>Thanh toán khi nhận hàng (COD)</strong>
-                        <span>Thanh toán bằng tiền mặt khi giao hàng</span>
+                        <strong>Thanh toán trực tuyến (Stripe)</strong>
+                        <span>Thanh toán an toàn qua thẻ Quốc tế/Nội địa</span>
                       </div>
                     </label>
-                    <label className={`payment-card ${formData.paymentMethod === 'bank' ? 'active' : ''}`}>
-                      <input type="radio" name="payment" value="bank" checked={formData.paymentMethod === 'bank'} onChange={() => setFormData({...formData, paymentMethod: 'bank'})} />
+                    <label className={`payment-card ${formData.paymentMethod === 'COD' ? 'active' : ''}`}>
+                      <input type="radio" name="payment" value="COD" checked={formData.paymentMethod === 'COD'} onChange={() => setFormData({...formData, paymentMethod: 'COD'})} />
                       <div className="payment-info">
-                        <strong>Chuyển khoản ngân hàng</strong>
-                        <span>Chuyển khoản qua ứng dụng ngân hàng hoặc Momo</span>
+                        <strong>Thanh toán khi nhận hàng (COD)</strong>
+                        <span>Trả tiền mặt cho người giao hàng</span>
                       </div>
                     </label>
                   </div>
                   <div className="checkout-actions">
                     <button className="btn-back" onClick={prevStep}><ArrowLeft size={16} /> Quay lại</button>
-                    <button className="btn btn-primary" onClick={nextStep}>XÁC NHẬN ĐẶT HÀNG</button>
+                    <button className="btn btn-primary" onClick={handlePlaceOrder} disabled={loading}>
+                      {loading ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN ĐẶT HÀNG'}
+                    </button>
                   </div>
                 </motion.div>
               )}
@@ -119,7 +160,7 @@ const Checkout = () => {
                 >
                   <CheckCircle size={80} color="var(--secondary)" />
                   <h1>Đặt hàng thành công!</h1>
-                  <p>Mã đơn hàng của bạn là <strong>#HSB-9921</strong>. Chúng tôi sẽ sớm liên hệ để xác nhận.</p>
+                  <p>Mã đơn hàng của bạn là <strong>#{orderId.slice(-8).toUpperCase()}</strong>. Chúng tôi sẽ sớm liên hệ để xác nhận.</p>
                   <Link to="/products" className="btn btn-primary mt-30">TIẾP TỤC MUA SẮM</Link>
                 </motion.div>
               )}

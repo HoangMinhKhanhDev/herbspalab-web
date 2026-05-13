@@ -1,28 +1,27 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { User, Package, MapPin, Settings, LogOut, ChevronRight, LayoutDashboard } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import SEO from '../components/common/SEO';
-import LazyImage from '../components/common/LazyImage';
+import { getMyOrders } from '../api/orderApi';
 
 const Profile = () => {
   const { user, logout } = useAuth();
+  const [orders, setOrders] = useState<any[]>([]);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) { navigate('/login'); return; }
+    getMyOrders().then(res => setOrders(res.data || [])).catch(() => {});
+  }, [user, navigate]);
 
-  const orders = [
-    { id: '#HSB-9921', date: '06/05/2026', total: '1.280.000₫', status: 'Đang xử lý' },
-    { id: '#HSB-8812', date: '20/04/2026', total: '850.000₫', status: 'Đã giao' },
-  ];
+  if (!user) return null;
 
   return (
     <motion.div 
@@ -41,7 +40,9 @@ const Profile = () => {
         <aside className="profile-sidebar" aria-label="Thanh điều hướng hồ sơ">
           <div className="profile-user-info">
             <div className="profile-avatar-wrap">
-              <LazyImage src={user.avatar || 'https://via.placeholder.com/150'} alt={`Ảnh đại diện của ${user.name}`} className="profile-avatar" />
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '2rem', fontWeight: 700 }}>
+                {user.name.charAt(0).toUpperCase()}
+              </div>
             </div>
             <h3>{user.name}</h3>
             <p>{user.email}</p>
@@ -91,21 +92,19 @@ const Profile = () => {
           <section className="profile-section mt-40" aria-labelledby="recent-orders-heading">
             <h2 id="recent-orders-heading">Đơn hàng gần đây</h2>
             <div className="orders-list">
-              {orders.map(order => (
-                <div key={order.id} className="order-card" role="article" aria-label={`Đơn hàng ${order.id}`}>
+              {orders.length > 0 ? orders.map((order: any) => (
+                <div key={order.id} className="order-card" role="article">
                   <div className="order-info">
-                    <strong>{order.id}</strong>
-                    <span>Ngày đặt: {order.date}</span>
+                    <strong>#{order.id?.slice(-8).toUpperCase()}</strong>
+                    <span>Ngày đặt: {new Date(order.createdAt).toLocaleDateString('vi-VN')}</span>
                   </div>
                   <div className="order-meta">
-                    <span className="order-total" aria-label="Tổng tiền">{order.total}</span>
-                    <span className={`status-pill ${order.status === 'Đã giao' ? 'success' : 'warning'}`} aria-label={`Trạng thái: ${order.status}`}>
-                      {order.status}
-                    </span>
-                    <ChevronRight size={18} aria-hidden="true" />
+                    <span className="order-total">{order.totalPrice?.toLocaleString()}₫</span>
+                    <span className={`status-pill ${order.status === 'delivered' ? 'success' : 'warning'}`}>{order.status}</span>
+                    <ChevronRight size={18} />
                   </div>
                 </div>
-              ))}
+              )) : <p style={{color:'var(--text-muted)'}}>Bạn chưa có đơn hàng nào.</p>}
             </div>
           </section>
         </main>

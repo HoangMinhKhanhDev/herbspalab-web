@@ -1,53 +1,141 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, UserPlus, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import '../styles/auth.css';
 
 const Register = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (password !== confirmPassword) {
+      return setError('Mật khẩu xác nhận không khớp');
+    }
+
+    setLoading(true);
+    try {
+      await register(name, email, password);
+      navigate('/');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Đăng ký thất bại');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }} 
-      className="auth-page"
+      className="auth-card"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
     >
-      <div className="auth-container">
         <div className="auth-header">
-          <h1>Tham gia Herbspa Lab</h1>
-          <p>Bắt đầu hành trình nuôi dưỡng làn da thuần khiết cùng chúng tôi</p>
+          <h2>Tham gia HerbSpaLab</h2>
+          <p>Bắt đầu hành trình chăm sóc vẻ đẹp tự nhiên của riêng bạn</p>
         </div>
-        <form className="auth-form">
+
+        {error && (
+          <motion.div 
+            className="auth-error"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <AlertCircle size={18} />
+            <span>{error}</span>
+          </motion.div>
+        )}
+
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label>Họ và tên</label>
             <div className="input-wrapper">
-              <User size={18} />
-              <input type="text" placeholder="Nguyễn Văn A" />
+              <User className="input-icon" size={18} />
+              <input
+                type="text"
+                placeholder="Nguyễn Văn A"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
           </div>
+
           <div className="form-group">
             <label>Email</label>
             <div className="input-wrapper">
-              <Mail size={18} />
-              <input type="email" placeholder="email@example.com" />
+              <Mail className="input-icon" size={18} />
+              <input
+                type="email"
+                placeholder="example@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
           </div>
+
           <div className="form-group">
             <label>Mật khẩu</label>
             <div className="input-wrapper">
-              <Lock size={18} />
-              <input type="password" placeholder="••••••••" />
+              <Lock className="input-icon" size={18} />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button" 
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
-          <p className="terms-text">
-            Bằng cách đăng ký, bạn đồng ý với <Link to="#">Điều khoản sử dụng</Link> và <Link to="#">Chính sách bảo mật</Link> của chúng tôi.
-          </p>
-          <button type="submit" className="btn btn-primary btn-block">
-            Đăng ký tài khoản <ArrowRight size={18} />
+
+          <div className="form-group">
+            <label>Xác nhận mật khẩu</label>
+            <div className="input-wrapper">
+              <Lock className="input-icon" size={18} />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
+            {loading ? (
+              <div className="loader"></div>
+            ) : (
+              <>
+                Đăng ký ngay <UserPlus size={18} />
+              </>
+            )}
           </button>
         </form>
+
         <div className="auth-footer">
-          <p>Đã có tài khoản? <Link to="/login">Đăng nhập</Link></p>
+          <p>Bạn đã có tài khoản? <Link to="/login">Đăng nhập</Link></p>
         </div>
-      </div>
     </motion.div>
   );
 };

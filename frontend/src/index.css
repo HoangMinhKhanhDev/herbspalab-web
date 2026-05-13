@@ -1,10 +1,26 @@
-/* ═══════════════════════════════════════════════════
-   HERBSPA LAB – Design System Foundation
-   Inspired by Thảnh Thơi Farm Reference
-   HSL Color System • Outfit + Playfair Display
-   ═══════════════════════════════════════════════════ */
-
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-mint: hsl(158, 39%, 52%);
+  --color-mint-dark: hsl(158, 39%, 38%);
+  --color-mint-light: hsl(158, 39%, 96%);
+  
+  --color-sage: hsl(158, 25%, 18%);
+  --color-sage-dark: hsl(158, 25%, 12%);
+  --color-sage-light: hsl(158, 20%, 95%);
+  
+  --color-gold: hsl(45, 35%, 60%);
+  --color-gold-dark: hsl(45, 35%, 45%);
+  --color-gold-light: hsl(45, 35%, 85%);
+  
+  --color-cream: hsl(45, 40%, 97%);
+
+  --font-display: "Playfair Display", serif;
+  --font-sans: "Outfit", sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════
 
 /* ─── HSL Color Palette ─── */
 :root {

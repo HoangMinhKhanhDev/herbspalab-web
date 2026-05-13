@@ -1,0 +1,58 @@
+name: Deploy HerbSpaLab to Hostinger (Unified)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 1. Build React Frontend
+      - name: Install & Build Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      # 2. Install & Build Backend (Prisma + TS)
+      - name: Install & Build Backend
+        run: |
+          cd backend
+          npm ci
+          npm run build
+
+      # 3. Deploy to Hostinger via FTP
+      - name: Upload to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # We deploy the whole root or specific folders. 
+          # For a clean deploy, we usually push backend/ (which now serves frontend/dist)
+          local-dir: ./
+          server-dir: public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/src/**
+            **/*.ts
+            **/tsconfig.json
+            **/frontend/node_modules/**
+            **/frontend/src/**
+            **/backend/src/**
+            .env
+            backend/.env
+            frontend/.env

@@ -4,6 +4,8 @@ import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Eye, ShoppingCart, ArrowRight, Sparkles, ShieldCheck, Leaf, Droplets, FlaskConical, Globe } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { Reveal } from '../components/Reveal';
+import { useCart } from '../context/CartContext';
+import { fetchProducts } from '../api/productApi';
 import SEO from '../components/common/SEO';
 import QuickView from '../components/common/QuickView';
 
@@ -89,15 +91,19 @@ const FloatingPetals = () => {
 };
 
 interface FeaturedProduct {
-  id: number;
+  id: string;
   name: string;
-  price: string;
-  img: string;
-  tag?: string;
+  price: number;
+  images: { url: string }[];
+  badge?: string | null;
+  category?: { name: string } | null;
 }
 
 const Home = () => {
   const [selectedProduct, setSelectedProduct] = useState<FeaturedProduct | null>(null);
+  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const { addToCart } = useCart();
   
   // Slider Logic
   const [[page, direction], setPage] = useState([0, 0]);
@@ -139,6 +145,24 @@ const Home = () => {
     return () => clearInterval(timer);
   }, [paginate]);
 
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        setProductsLoading(true);
+        const { data } = await fetchProducts({ limit: 4 });
+        // Handle both {data:[...]} and direct array responses
+        const items = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+        setFeaturedProducts(items.slice(0, 4));
+      } catch (err) {
+        console.error('Failed to load featured products', err);
+        setFeaturedProducts([]);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+    loadFeatured();
+  }, []);
+
   const slideVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? 1000 : -1000,
@@ -161,12 +185,7 @@ const Home = () => {
   const y2 = useTransform(scrollY, [0, 1000], [0, -150]);
   const scale = useTransform(scrollY, [0, 800], [1, 1.1]);
 
-  const featuredProducts = [
-    { id: 1, name: "Serum Phục Hồi Nhân Sâm", price: "1.250.000₫", img: "/assets/images/product_1.png", tag: "Best Seller" },
-    { id: 2, name: "Kem Dưỡng Ẩm Da Ban Đêm", price: "850.000₫", img: "/assets/images/product_2.png", tag: "New Arrival" },
-    { id: 3, name: "Sữa Rửa Mặt Thảo Mộc", price: "450.000₫", img: "/assets/images/product_3.png", tag: "Organic" },
-    { id: 4, name: "Kem Trị Nám Da Thiên Nhiên", price: "680.000₫", img: "/assets/images/product_4.png", tag: "Popular" }
-  ];
+  // Removed hardcoded featuredProducts
 
   const stats = [
     { value: 12, label: "Năm Kinh Nghiệm", suffix: "+" },
@@ -412,42 +431,52 @@ const Home = () => {
           </div>
           
           <div className="curated-grid">
-            {featuredProducts.map((product, idx) => (
-              <Reveal key={product.id} delay={idx * 0.15}>
-                <div className="luxury-card interactive">
-                  <div className="luxury-card-img">
-                    <img 
-                      src={product.img} 
-                      alt={product.name} 
-                      width="400" 
-                      height="500" 
-                      loading="lazy" 
-                    />
-                    <div className="luxury-card-overlay">
-                      <div className="luxury-action-group">
-                        <button className="btn-luxury-icon" onClick={() => setSelectedProduct(product)}>
-                          <Eye size={18} />
-                        </button>
-                        <button className="btn-luxury-icon">
-                          <ShoppingCart size={18} />
-                        </button>
+            {productsLoading ? (
+              <div className="loader-container"><div className="loader"></div></div>
+            ) : (
+              featuredProducts.map((product, idx) => (
+                <Reveal key={product.id} delay={idx * 0.15}>
+                  <div className="luxury-card interactive">
+                    <div className="luxury-card-img">
+                      <img 
+                        src={product.images?.[0]?.url || 'https://via.placeholder.com/400x500'} 
+                        alt={product.name} 
+                        width="400" 
+                        height="500" 
+                        loading="lazy" 
+                      />
+                      <div className="luxury-card-overlay">
+                        <div className="luxury-action-group">
+                          <button className="btn-luxury-icon" onClick={() => setSelectedProduct(product)}>
+                            <Eye size={18} />
+                          </button>
+                          <button className="btn-luxury-icon" onClick={() => addToCart({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            image: product.images?.[0]?.url || '',
+                            category: product.category?.name || 'Thảo mộc'
+                          })}>
+                            <ShoppingCart size={18} />
+                          </button>
+                        </div>
+                      </div>
+                      {product.badge && <div className="luxury-tag">{product.badge}</div>}
+                    </div>
+                    <div className="luxury-card-info">
+                      <span className="card-cat">{product.category?.name || 'BOTANICAL CARE'}</span>
+                      <h3>{product.name}</h3>
+                      <div className="card-footer">
+                        <span className="card-price">{product.price.toLocaleString()}₫</span>
+                        <Link to={`/product/${product.id}`} className="card-link">
+                          DETAIL <ArrowRight size={14} />
+                        </Link>
                       </div>
                     </div>
-                    {product.tag && <div className="luxury-tag">{product.tag}</div>}
                   </div>
-                  <div className="luxury-card-info">
-                    <span className="card-cat">BOTANICAL CARE</span>
-                    <h3>{product.name}</h3>
-                    <div className="card-footer">
-                      <span className="card-price">{product.price}</span>
-                      <Link to={`/product/${product.id}`} className="card-link">
-                        DETAIL <ArrowRight size={14} />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
+                </Reveal>
+              ))
+            )}
           </div>
 
           <div className="section-footer-action">
