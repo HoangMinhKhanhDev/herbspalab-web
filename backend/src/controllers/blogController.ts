@@ -12,6 +12,27 @@ export const getBlogs = asyncHandler(async (req: Request, res: Response) => {
   res.json(blogs);
 });
 
+// @desc    Get all blogs for admin (Drafts + Published)
+export const getAdminBlogs = asyncHandler(async (req: Request, res: Response) => {
+  const blogs = await prisma.blog.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+  res.json(blogs);
+});
+
+// @desc    Get single blog by id (Admin)
+export const getBlogById = asyncHandler(async (req: Request, res: Response) => {
+  const blog = await prisma.blog.findUnique({
+    where: { id: req.params.id as string }
+  });
+  if (blog) {
+    res.json(blog);
+  } else {
+    res.status(404);
+    throw new Error('Không tìm thấy bài viết');
+  }
+});
+
 // @desc    Get single blog by slug
 export const getBlogBySlug = asyncHandler(async (req: Request, res: Response) => {
   const blog = await prisma.blog.findUnique({

@@ -12,9 +12,17 @@ export const getAttributes = asyncHandler(async (req: Request, res: Response) =>
 
 // @desc    Create attribute
 export const createAttribute = asyncHandler(async (req: Request, res: Response) => {
-  const { name } = req.body;
+  const { name, values } = req.body;
   const attribute = await prisma.attribute.create({
-    data: { name }
+    data: { 
+      name,
+      ...(values && Array.isArray(values) && {
+        values: {
+          create: values.filter((v: string) => v.trim()).map((v: string) => ({ value: v.trim() }))
+        }
+      })
+    },
+    include: { values: true }
   });
   res.status(201).json(attribute);
 });

@@ -36,8 +36,13 @@ import NewsManager from './pages/admin/NewsManager';
 import NewsEdit from './pages/admin/NewsEdit';
 import Settings from './pages/admin/Settings';
 import UserManager from './pages/admin/UserManager';
+import OrderDetail from './pages/admin/OrderDetail';
+import ReportsPage from './pages/admin/ReportsPage';
+
+import { Toaster } from 'react-hot-toast';
 
 // ─── Error Boundary ──────────────────────────────────────────────────────────
+
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
   constructor(props: any) {
     super(props);
@@ -109,6 +114,7 @@ function App() {
             </ErrorBoundary>
           </div>
           <Footer />
+          <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { background: '#1a1a1a', color: '#fff', borderRadius: '1rem', fontSize: '14px' } }} />
         </div>
       </div>
     );
@@ -137,11 +143,13 @@ function App() {
                 <Route path="products" element={<ProductList />} />
                 <Route path="products/:id" element={<ProductEdit />} />
                 <Route path="orders" element={<OrderList />} />
+                <Route path="orders/:id" element={<OrderDetail />} />
                 <Route path="categories" element={<CategoryManager />} />
                 <Route path="attributes" element={<AttributeManager />} />
                 <Route path="consultations" element={<ConsultationManager />} />
                 <Route path="news" element={<NewsManager />} />
                 <Route path="news/:id" element={<NewsEdit />} />
+                <Route path="reports" element={<ReportsPage />} />
                 <Route path="users" element={<UserManager />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
@@ -150,6 +158,7 @@ function App() {
         </ErrorBoundary>
       </main>
       {!isAtAdmin && <Footer />}
+      <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { background: '#1a1a1a', color: '#fff', borderRadius: '1rem', fontSize: '14px' } }} />
     </div>
   );
 }

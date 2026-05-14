@@ -7,7 +7,10 @@ export const getCategories = asyncHandler(async (req: Request, res: Response) =>
   const categories = await prisma.category.findMany({
     include: {
       children: true,
-      parent: true
+      parent: true,
+      _count: {
+        select: { products: true }
+      }
     }
   });
   res.json(categories);
@@ -70,7 +73,7 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
   const { name, slug, description, banner, parentId, metaTitle, metaDescription } = req.body;
 
   const category = await prisma.category.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: {
       name,
       slug,

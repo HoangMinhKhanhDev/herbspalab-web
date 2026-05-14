@@ -28,5 +28,9 @@ export const importProductsCSV = (file: File) => {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
 };
+
+export const duplicateProduct = (id: string) => API.post(`/products/${id}/duplicate`);
+export const bulkUpdateProducts = (updates: any[]) => API.patch('/products/bulk-update', { updates });
+
 export const getProductDetails = (id: string) => 
   API.get(`/products/${id}`).then(res => res.data);

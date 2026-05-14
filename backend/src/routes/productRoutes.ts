@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProducts, getProductById, createProduct, updateProduct, deleteProduct, exportProductsCSV, importProductsCSV } from '../controllers/productController.js';
+import { getProducts, getProductById, createProduct, updateProduct, deleteProduct, exportProductsCSV, importProductsCSV, duplicateProduct, bulkUpdateProducts } from '../controllers/productController.js';
 import { createProductReview, getProductReviews } from '../controllers/reviewController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 import multer from 'multer';
@@ -19,5 +19,7 @@ router.delete('/:id', protect, admin, deleteProduct);
 
 router.get('/export/csv', protect, admin, exportProductsCSV);
 router.post('/import/csv', protect, admin, upload.single('file'), importProductsCSV);
+router.post('/:id/duplicate', protect, admin, duplicateProduct);
+router.patch('/bulk-update', protect, admin, bulkUpdateProducts);
 
 export default router;

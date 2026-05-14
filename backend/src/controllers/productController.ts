@@ -294,3 +294,56 @@ export const importProductsCSV = asyncHandler(async (req: any, res: Response) =>
   fs.unlinkSync(req.file.path);
   res.json({ success: true, imported });
 });
+
+// @desc    Duplicate a product
+// @route   POST /api/products/:id/duplicate
+export const duplicateProduct = asyncHandler(async (req: Request, res: Response) => {
+  const product = await prisma.product.findUnique({
+    where: { id: req.params.id as string },
+    include: { images: true, variants: { include: { options: true } } }
+  });
+
+  if (!product) {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+
+  const { id, createdAt, updatedAt, images, variants, ...rest } = product as any;
+
+  const newProduct = await prisma.product.create({
+    data: {
+      ...rest,
+      name: `${rest.name} (Copy)`,
+      sku: rest.sku ? `${rest.sku}-COPY` : null,
+      images: {
+        create: images.map((img: any) => ({ url: img.url }))
+      }
+    }
+  });
+
+  res.status(201).json(newProduct);
+});
+
+// @desc    Bulk update products (Quick Edit)
+// @route   PATCH /api/products/bulk-update
+export const bulkUpdateProducts = asyncHandler(async (req: Request, res: Response) => {
+  const { updates } = req.body; // Array of { id, price, stock }
+
+  if (!updates || !Array.isArray(updates)) {
+    res.status(400);
+    throw new Error('Invalid updates data');
+  }
+
+  const results = await Promise.all(updates.map(async (u: any) => {
+    return prisma.product.update({
+      where: { id: u.id },
+      data: {
+        ...(u.price !== undefined && { price: parseFloat(u.price) }),
+        ...(u.stock !== undefined && { stock: parseInt(u.stock) })
+      }
+    });
+  }));
+
+  res.json({ success: true, count: results.length });
+});
+

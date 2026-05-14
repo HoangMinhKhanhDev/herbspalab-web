@@ -81,23 +81,17 @@ const swaggerOptions = {
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use(express.json());
-
 // Middleware
-app.use(async (req, res, next) => {
+app.use((req, res, next) => {
   if (req.path.startsWith('/api') && !req.path.startsWith('/api/admin')) {
-    try {
-      await prisma.trafficLog.create({
-        data: {
-          path: req.path,
-          ip: req.ip || null,
-          referrer: req.get('referrer') || null,
-          userAgent: req.get('user-agent') || null,
-        }
-      } as any);
-    } catch (e) {
-      // Don't block the request if logging fails
-    }
+    prisma.trafficLog.create({
+      data: {
+        path: req.path,
+        ip: req.ip || null,
+        referrer: req.get('referrer') || null,
+        userAgent: req.get('user-agent') || null,
+      }
+    } as any).catch(() => {});
   }
   next();
 });

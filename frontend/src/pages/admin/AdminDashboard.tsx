@@ -1,225 +1,422 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
+import {
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
-import { 
-  TrendingUp, Users, ShoppingBag, MessageSquare, DollarSign, Package, Star, Calendar
+import {
+  TrendingUp, TrendingDown, Users, ShoppingBag, MessageSquare, DollarSign,
+  Star, RefreshCw, Clock, ChevronRight, Plus, Eye, ArrowRight, Package
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { getAdminStats } from '../../api/adminApi';
-import { formatPrice } from '../../utils/format';
+import { formatPrice, formatDate } from '../../utils/format';
+import AdminEmptyState from '../../components/admin/AdminEmptyState';
+
+const COLORS = ['#1a241b', '#bca37f', '#4a9d7c', '#e8634a', '#6366f1', '#8b5cf6'];
+
+const getTimeGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Chào buổi sáng';
+  if (hour < 18) return 'Chào buổi chiều';
+  return 'Chào buổi tối';
+};
+
+const StatCard = ({ label, value, growth, icon: Icon, color }: any) => {
+  const isPositive = growth >= 0;
+  const colors: any = {
+    amber: 'bg-amber-50 text-amber-600 border-amber-100',
+    mint: 'bg-mint/5 text-mint border-mint/10',
+    blue: 'bg-blue-50 text-blue-600 border-blue-100',
+    purple: 'bg-purple-50 text-purple-600 border-purple-100',
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm hover:shadow-md transition-all group">
+      <div className="flex items-start justify-between mb-4">
+        <div className={`p-3 rounded-2xl ${colors[color]} border transition-transform group-hover:scale-110`}>
+          <Icon className="w-6 h-6" />
+        </div>
+        {growth !== undefined && (
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {Math.abs(growth)}%
+          </div>
+        )}
+      </div>
+      <div>
+        <p className="text-[11px] font-bold text-sage/30 uppercase tracking-[0.15em] mb-1">{label}</p>
+        <h3 className="text-3xl font-bold text-sage tracking-tight">{value}</h3>
+      </div>
+    </div>
+  );
+};
 
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await getAdminStats();
-        setStats(data);
-      } catch (error) {
-        console.error('Failed to fetch stats', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStats();
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const data = await getAdminStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Failed to fetch stats', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) return (
-    <div className="space-y-10 animate-pulse p-4">
-      <div className="h-20 bg-white/50 rounded-3xl w-1/3 border border-sage/5" />
-      <div className="grid grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map(i => <div key={i} className="h-44 bg-white rounded-[2rem] border border-sage/5 shadow-soft" />)}
-      </div>
-      <div className="grid grid-cols-2 gap-8">
-        <div className="h-96 bg-white rounded-[2.5rem] border border-sage/5 shadow-soft" />
-        <div className="h-96 bg-white rounded-[2.5rem] border border-sage/5 shadow-soft" />
-      </div>
+    <div className="p-20 text-center flex flex-col items-center justify-center space-y-4">
+      <div className="w-12 h-12 border-4 border-mint border-t-transparent rounded-full animate-spin" />
+      <p className="font-bold text-sage/40 uppercase tracking-[0.2em] text-[10px]">Đang đồng bộ hệ thống dữ liệu...</p>
     </div>
   );
-
-  if (!stats) return (
-    <div className="p-20 text-center flex flex-col items-center animate-in fade-in zoom-in duration-1000">
-      <div className="w-24 h-24 bg-red-50 text-red-400 rounded-full flex items-center justify-center mb-8 shadow-inner border border-red-100/50">
-        <ShoppingBag className="w-10 h-10" />
-      </div>
-      <h2 className="text-3xl font-display font-bold text-sage mb-4">Lỗi kết nối máy chủ quản trị</h2>
-      <p className="text-sage/40 max-w-md mx-auto italic text-lg leading-relaxed mb-8">
-        Hệ thống không thể truy xuất dữ liệu thời gian thực. Vui lòng kiểm tra kết nối mạng hoặc liên hệ kỹ thuật viên để được hỗ trợ.
-      </p>
-      <button 
-        onClick={() => window.location.reload()}
-        className="px-12 py-4 bg-sage text-white rounded-2xl font-bold hover:bg-sage-dark shadow-xl shadow-sage/20 transition-all active:scale-95"
-      >
-        Thử tải lại trang
-      </button>
-    </div>
-  );
-
-  const statCards = [
-    { label: 'Doanh thu thuần', value: formatPrice(stats.revenue), icon: DollarSign, color: 'text-gold', bg: 'bg-gold/5', border: 'border-gold/10' },
-    { label: 'Đơn hàng mới', value: stats.orderCount, icon: ShoppingBag, color: 'text-sage', bg: 'bg-sage/5', border: 'border-sage/10' },
-    { label: 'Khách hàng mới', value: stats.newCustomerCount, icon: Users, color: 'text-sage', bg: 'bg-sage/5', border: 'border-sage/10' },
-    { label: 'Yêu cầu tư vấn', value: stats.consultationCount, icon: MessageSquare, color: 'text-gold', bg: 'bg-gold/5', border: 'border-gold/10' },
-  ];
+  if (!stats) return null;
 
   return (
-    <div className="space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 text-gold font-black text-[10px] uppercase tracking-[0.3em] mb-2 opacity-80">
-            <Calendar className="w-3.5 h-3.5" />
-            {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 pb-24">
+      {/* Header & Status */}
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 pt-4">
+        <div>
+          <div className="flex items-center gap-3 text-gold font-black text-[10px] uppercase tracking-[0.4em] mb-3">
+            <div className="flex gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-mint animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-mint/40" />
+            </div>
+            System Operational • Live
           </div>
-          <h1 className="text-5xl font-display font-black text-sage tracking-tight">Chào mừng trở lại, <span className="text-gold italic">Admin</span></h1>
-          <p className="text-sage/40 text-lg font-medium italic">Dưới đây là báo cáo phân tích hiệu quả kinh doanh của HerbSpaLab ngày hôm nay.</p>
+          <h1 className="text-6xl font-display italic text-sage leading-tight tracking-tighter">
+            {getTimeGreeting()}, <span className="text-gold">Admin</span>
+          </h1>
+          <p className="text-sage/40 text-[12px] font-bold uppercase tracking-[0.2em] mt-3">Chào mừng bạn trở lại với trung tâm điều hành HerbSpaLab</p>
         </div>
-        <div className="flex gap-4">
-          <button className="px-6 py-3 bg-white border border-sage/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-sage hover:border-gold transition-all shadow-soft">Xuất báo cáo</button>
-          <button className="px-6 py-3 bg-sage text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-sage-dark transition-all shadow-xl shadow-sage/10">Xem chi tiết</button>
+        
+        <div className="flex items-center gap-6 bg-white p-6 px-10 rounded-[2.5rem] border border-black/5 shadow-xl backdrop-blur-xl bg-white/60">
+          <div className="flex flex-col items-center gap-1 border-r border-black/5 pr-8">
+            <span className="text-[10px] font-bold text-sage/30 uppercase tracking-widest">Thời gian</span>
+            <span className="text-xl font-bold text-sage">{currentTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+          <div className="flex flex-col items-center gap-1 border-r border-black/5 pr-8">
+            <span className="text-[10px] font-bold text-sage/30 uppercase tracking-widest">Phiên làm việc</span>
+            <span className="text-xl font-bold text-mint">Đã xác thực</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-sage rounded-2xl flex items-center justify-center text-white shadow-lg overflow-hidden border border-black/5">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats Grid - More Spacious */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {statCards.map((card, idx) => (
-          <div key={idx} className={`bg-white p-10 rounded-[2.5rem] border ${card.border} shadow-soft hover:shadow-premium transition-all duration-700 group cursor-default relative overflow-hidden`}>
-            <div className={`absolute top-0 right-0 w-32 h-32 ${card.bg} rounded-full -mr-16 -mt-16 opacity-50 transition-transform duration-700 group-hover:scale-125`} />
-            <div className={`w-16 h-16 rounded-2xl ${card.bg} flex items-center justify-center mb-8 relative z-10 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
-              <card.icon className={`w-8 h-8 ${card.color}`} />
-            </div>
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-sage/40 uppercase tracking-[0.2em] mb-2">{card.label}</p>
-              <h3 className="text-3xl font-display font-black text-sage">{card.value}</h3>
-              <div className="mt-4 flex items-center gap-2 text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
-                <TrendingUp className="w-3 h-3" />
-                +12% so với tháng trước
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+        <StatCard label="Doanh thu" value={formatPrice(stats.revenue)} growth={stats.revenueGrowth} icon={DollarSign} color="amber" />
+        <StatCard label="Đơn hàng mới" value={stats.orderCount} growth={stats.orderGrowth} icon={ShoppingBag} color="mint" />
+        <StatCard label="Khách hàng" value={stats.customerCount} growth={stats.customerGrowth} icon={Users} color="blue" />
+        <StatCard label="Tư vấn" value={stats.consultationCount} growth={0} icon={MessageSquare} color="purple" />
+      </div>
+
+      {/* Pending Actions Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-amber-50/50 border border-amber-100 p-8 rounded-[2.5rem] flex items-center justify-between group hover:bg-amber-50 transition-all cursor-pointer">
+          <div className="space-y-1">
+            <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em]">Cần xử lý</p>
+            <h3 className="text-2xl font-bold text-sage">{stats.orderCount || 0} Đơn hàng đang chờ</h3>
+          </div>
+          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <Package className="w-6 h-6 text-amber-500" />
+          </div>
+        </div>
+        <div className="bg-mint/5 border border-mint/10 p-8 rounded-[2.5rem] flex items-center justify-between group hover:bg-mint/10 transition-all cursor-pointer">
+          <div className="space-y-1">
+            <p className="text-[10px] font-black text-mint uppercase tracking-[0.2em]">Yêu cầu mới</p>
+            <h3 className="text-2xl font-bold text-sage">{stats.pendingConsultationCount || 0} Tư vấn chưa liên hệ</h3>
+          </div>
+          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <MessageSquare className="w-6 h-6 text-mint" />
+          </div>
+        </div>
+        <div className="bg-blue-50/50 border border-blue-100 p-8 rounded-[2.5rem] flex items-center justify-between group hover:bg-blue-50 transition-all cursor-pointer">
+          <div className="space-y-1">
+            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">Kho hàng</p>
+            <h3 className="text-2xl font-bold text-sage">Tình trạng kho ổn định</h3>
+          </div>
+          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <TrendingUp className="w-6 h-6 text-blue-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Charts Row */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        {/* Revenue Trend - Spans 2 columns */}
+        <div className="xl:col-span-2 bg-white p-10 rounded-[3rem] border border-black/5 shadow-sm">
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-sage tracking-tight">Xu hướng Doanh thu</h3>
+                <p className="text-sage/30 text-[10px] font-bold uppercase tracking-[0.2em]">Báo cáo hiệu suất 7 ngày gần nhất</p>
               </div>
             </div>
+            <button onClick={fetchStats} className="p-3 bg-gray-50 text-sage/20 hover:text-sage hover:bg-white rounded-xl transition-all border border-transparent hover:border-black/5">
+              <RefreshCw className="w-5 h-5" />
+            </button>
           </div>
-        ))}
-      </div>
-
-      {/* Charts - Premium Glass Containers */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
-        <div className="bg-white p-12 rounded-[3rem] border border-sage/5 shadow-soft hover:shadow-premium transition-all duration-700">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h3 className="text-2xl font-display font-black text-sage flex items-center gap-4">
-                <TrendingUp className="w-8 h-8 text-gold" />
-                Xu hướng Doanh thu
-              </h3>
-              <p className="text-sage/40 text-xs font-bold uppercase tracking-[0.15em] mt-1 ml-12">Dữ liệu 7 ngày gần nhất</p>
-            </div>
-          </div>
-          <div className="h-[400px] w-full">
+          <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.revenueTrend}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#bca37f" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#bca37f" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#bca37f" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#bca37f" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8f5f0" />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: '#1a241b', fontSize: 10, fontWeight: 900}} dy={15} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#1a241b', fontSize: 10, fontWeight: 900}} tickFormatter={(val) => `${val/1000}k`} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', padding: '20px 30px', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
-                  itemStyle={{ fontFamily: 'Outfit', fontWeight: 900, fontSize: '15px', color: '#1a241b' }}
-                  labelStyle={{ fontFamily: 'Playfair Display', fontWeight: 900, color: '#bca37f', fontSize: '18px', marginBottom: '8px', fontStyle: 'italic' }}
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} tickFormatter={(val) => `${val / 1000}k`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', padding: '20px 24px', background: 'white' }}
+                  itemStyle={{ fontWeight: 800, fontSize: '16px', color: '#1a241b' }}
+                  labelStyle={{ fontWeight: 900, color: '#bca37f', fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.2em' }}
                   formatter={(val: number) => [formatPrice(val), 'Doanh thu']}
                 />
-                <Area type="monotone" dataKey="value" stroke="#bca37f" strokeWidth={5} fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" dataKey="value" stroke="#bca37f" strokeWidth={5} fillOpacity={1} fill="url(#colorRevenue)" dot={{ r: 6, fill: '#bca37f', strokeWidth: 3, stroke: '#fff' }} activeDot={{ r: 8 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white p-12 rounded-[3rem] border border-sage/5 shadow-soft hover:shadow-premium transition-all duration-700">
-          <div className="flex items-center justify-between mb-12">
+        {/* Traffic Sources */}
+        <div className="bg-white p-10 rounded-[3rem] border border-black/5 shadow-sm flex flex-col">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="w-12 h-12 rounded-2xl bg-mint/5 flex items-center justify-center">
+              <Eye className="w-6 h-6 text-mint" />
+            </div>
             <div>
-              <h3 className="text-2xl font-display font-black text-sage flex items-center gap-4">
-                <Package className="w-8 h-8 text-sage" />
-                Lượng truy cập
-              </h3>
-              <p className="text-sage/40 text-xs font-bold uppercase tracking-[0.15em] mt-1 ml-12">Lưu lượng truy cập hệ thống</p>
+              <h3 className="text-2xl font-bold text-sage tracking-tight">Nguồn truy cập</h3>
+              <p className="text-sage/30 text-[10px] font-bold uppercase tracking-[0.2em]">{stats.trafficCount.toLocaleString()} lượt truy cập tháng này</p>
             </div>
           </div>
-          <div className="h-[400px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.trafficTrend}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8f5f0" />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: '#1a241b', fontSize: 10, fontWeight: 900}} dy={15} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#1a241b', fontSize: 10, fontWeight: 900}} />
-                <Tooltip 
-                  cursor={{fill: '#fcfaf7'}}
-                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', padding: '20px 30px', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
-                  itemStyle={{ fontFamily: 'Outfit', fontWeight: 900, fontSize: '15px', color: '#1a241b' }}
-                  labelStyle={{ fontFamily: 'Playfair Display', fontWeight: 900, color: '#1a241b', fontSize: '18px', marginBottom: '8px', fontStyle: 'italic' }}
-                  formatter={(val: number) => [val, 'Lượt truy cập']}
-                />
-                <Bar dataKey="value" fill="#1a241b" radius={[12, 12, 0, 0]} barSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.trafficSourceBreakdown}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={8}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {stats.trafficSourceBreakdown.map((_: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px 16px' }}
+                    itemStyle={{ fontWeight: 800, fontSize: '14px' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="grid grid-cols-1 gap-4 mt-10">
+              {stats.trafficSourceBreakdown.slice(0, 4).map((item: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-black/5 group hover:bg-white hover:shadow-md transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                    <span className="text-[11px] font-bold text-sage/40 uppercase tracking-widest">{item.name}</span>
+                  </div>
+                  <span className="text-lg font-bold text-sage">{item.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Top Products - Editorial Table */}
-      <div className="bg-white rounded-[4rem] shadow-soft border border-sage/5 overflow-hidden transition-all duration-700 hover:shadow-premium">
-        <div className="p-12 border-b border-sage/5 bg-sage/[0.01] flex items-center justify-between">
-          <div>
-            <h3 className="text-3xl font-display font-black text-sage flex items-center gap-5">
-              <Star className="w-10 h-10 text-gold fill-gold animate-pulse" />
-              Sản phẩm xuất sắc nhất
+      {/* Activity & Recent Orders */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-10">
+        {/* Activity Feed */}
+        <div className="bg-white rounded-[3rem] border border-black/5 overflow-hidden shadow-sm flex flex-col h-fit">
+          <div className="p-8 border-b border-black/5 bg-gray-50/30">
+            <h3 className="font-bold text-sage text-sm flex items-center gap-2 tracking-tight">
+              <RefreshCw className="w-4 h-4 text-mint animate-spin-slow" /> 
+              Hoạt động hệ thống
             </h3>
-            <p className="text-sage/40 text-xs font-bold uppercase tracking-[0.2em] mt-2 ml-14">Top Performing Collections</p>
           </div>
-          <button className="px-8 py-3 bg-gold/5 border border-gold/10 text-gold text-[10px] font-black uppercase tracking-[0.3em] rounded-full hover:bg-gold hover:text-white transition-all shadow-sm">
-            Tất cả sản phẩm
-          </button>
+          <div className="p-4 space-y-2 flex-1 flex flex-col">
+            {stats.activities?.length > 0 ? stats.activities.map((act: any, idx: number) => (
+              <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all border border-transparent hover:border-black/5 group">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${act.type === 'order' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-500'}`}>
+                  {act.type === 'order' ? <ShoppingBag className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-bold text-sage line-clamp-2 leading-tight">{act.text}</p>
+                  <p className="text-[10px] text-sage/30 font-bold uppercase tracking-[0.2em] mt-2">{new Date(act.time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+            )) : (
+              <div className="flex-1 flex items-center justify-center p-8">
+                <AdminEmptyState
+                  icon={Clock}
+                  title="Chưa có hoạt động"
+                  description="Hệ thống chưa ghi nhận hoạt động nào gần đây."
+                />
+              </div>
+            )}
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-sage/[0.03] text-sage/40 text-[11px] uppercase tracking-[0.3em]">
-                <th className="px-12 py-8 font-black">Thứ hạng & Sản phẩm</th>
-                <th className="px-12 py-8 font-black">Lượng tiêu thụ</th>
-                <th className="px-12 py-8 font-black text-right">Giá trị mang lại</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-sage/5">
-              {stats.topProducts.map((p: any, idx: number) => (
-                <tr key={idx} className="hover:bg-sage/[0.01] transition-all duration-500 group/row">
-                  <td className="px-12 py-10">
-                    <div className="flex items-center gap-8">
-                      <div className="w-14 h-14 bg-sage/5 text-gold rounded-2xl flex items-center justify-center font-display text-2xl font-black border border-gold/10 group-hover/row:bg-gold group-hover/row:text-white transition-all">
-                        {idx + 1}
-                      </div>
-                      <div>
-                        <span className="font-display font-black text-sage text-2xl group-hover/row:text-gold transition-colors block mb-1">{p.name}</span>
-                        <span className="text-[10px] font-bold text-sage/30 uppercase tracking-[0.1em]">Collection 2026</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-12 py-10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-gold rounded-full" />
-                      <span className="text-sage font-black text-lg">
-                        {p.qty} <span className="text-xs font-bold text-sage/40 uppercase tracking-widest ml-1">Đơn vị</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-12 py-10 text-right">
-                    <span className="text-sage font-display font-black text-3xl tracking-tight group-hover/row:text-gold transition-colors">{formatPrice(p.revenue)}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        {/* Recent Orders */}
+        <div className="xl:col-span-3 bg-white rounded-[3rem] border border-black/5 overflow-hidden shadow-sm flex flex-col">
+          <div className="p-10 border-b border-black/5 bg-gray-50/30 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-sage tracking-tight">Đơn hàng vừa đặt</h3>
+                <p className="text-sage/30 text-[10px] font-bold uppercase tracking-[0.2em]">Cập nhật trạng thái thời gian thực</p>
+              </div>
+            </div>
+            <Link to="/admin/orders" className="flex items-center gap-2 text-[11px] font-black text-sage/40 hover:text-mint uppercase tracking-[0.2em] transition-all">
+              Tất cả đơn hàng <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            {stats.recentOrders?.length > 0 ? (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[10px] font-black text-sage/30 uppercase tracking-[0.3em] border-b border-black/5 bg-gray-50/10">
+                    <th className="px-10 py-6">Mã đơn</th>
+                    <th className="px-10 py-6">Khách hàng</th>
+                    <th className="px-10 py-6 text-center">Trạng thái</th>
+                    <th className="px-10 py-6 text-right">Tổng tiền</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-black/5">
+                  {stats.recentOrders.map((order: any) => (
+                    <tr key={order.id} className="hover:bg-gray-50/80 transition-all group cursor-pointer">
+                      <td className="px-10 py-6">
+                        <span className="font-mono text-[12px] font-bold text-mint bg-mint/5 px-3 py-1.5 rounded-xl border border-mint/10 group-hover:bg-mint group-hover:text-white transition-all">#{order.id.slice(-6).toUpperCase()}</span>
+                      </td>
+                      <td className="px-10 py-6">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sage text-base">{order.user?.name || 'Khách vãng lai'}</span>
+                          <span className="text-[11px] text-sage/30 font-bold uppercase tracking-wider mt-1">{formatDate(order.createdAt)}</span>
+                        </div>
+                      </td>
+                      <td className="px-10 py-6 text-center">
+                        <span className={`inline-flex px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border ${
+                          order.status === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                          order.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                          'bg-blue-50 text-blue-500 border-blue-200'
+                        }`}>
+                          {order.status === 'delivered' ? 'Hoàn tất' : order.status === 'pending' ? 'Chờ duyệt' : 'Xử lý'}
+                        </span>
+                      </td>
+                      <td className="px-10 py-6 text-right font-bold text-sage text-lg">{formatPrice(order.totalPrice)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="p-10">
+                <AdminEmptyState
+                  icon={ShoppingBag}
+                  title="Không có đơn hàng"
+                  description="Chưa có đơn hàng nào được đặt gần đây."
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Top Products Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        <div className="xl:col-span-2 bg-white rounded-[3rem] border border-black/5 overflow-hidden shadow-sm">
+          <div className="p-10 border-b border-black/5 bg-gray-50/30 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-sage tracking-tight">Sản phẩm bán chạy</h3>
+                <p className="text-sage/30 text-[10px] font-bold uppercase tracking-[0.2em]">Top hiệu suất kinh doanh</p>
+              </div>
+            </div>
+            <Link to="/admin/products" className="p-3 bg-gray-50 text-sage/20 hover:text-sage hover:bg-white rounded-xl transition-all border border-transparent hover:border-black/5">
+              <Plus className="w-5 h-5" />
+            </Link>
+          </div>
+          <div className="divide-y divide-black/5 flex-1 flex flex-col">
+            {stats.topProducts?.length > 0 ? stats.topProducts.map((p: any, idx: number) => (
+              <div key={idx} className="flex items-center justify-between px-10 py-6 hover:bg-gray-50 transition-all group">
+                <div className="flex items-center gap-6">
+                  <div className="w-12 h-12 bg-gray-50 text-sage/20 rounded-2xl flex items-center justify-center font-bold text-xl border border-black/5 shadow-inner group-hover:bg-ink group-hover:text-white transition-all">
+                    {idx + 1}
+                  </div>
+                  <div>
+                    <span className="font-bold text-sage text-lg group-hover:text-gold transition-colors block leading-tight">{p.name}</span>
+                    <span className="text-[11px] font-bold text-sage/25 uppercase tracking-widest mt-2 block">{p.qty} sản phẩm đã bán</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-sage text-xl group-hover:text-mint transition-colors tracking-tighter">{formatPrice(p.revenue)}</p>
+                  <div className="flex items-center justify-end gap-1.5 mt-1">
+                    <TrendingUp className="w-3.5 h-3.5 text-mint" />
+                    <span className="text-[10px] font-black text-mint uppercase tracking-[0.2em]">Hot Product</span>
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <div className="flex-1 flex items-center justify-center p-10">
+                <AdminEmptyState
+                  icon={Star}
+                  title="Chưa có dữ liệu"
+                  description="Chưa có thống kê sản phẩm bán chạy trong khoảng thời gian này."
+                />
+              </div>
+            )}
+          </div>
+          <div className="p-8 bg-gray-50/50 border-t border-black/5">
+            <Link to="/admin/products" className="w-full py-5 bg-white border border-black/5 rounded-2xl text-[12px] font-black text-sage/40 hover:text-sage hover:shadow-xl transition-all flex items-center justify-center gap-3 uppercase tracking-[0.3em]">
+              Quản lý kho hàng sản phẩm <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+        
+        {/* Quick Help / Info Card */}
+        <div className="bg-ink p-10 rounded-[3rem] text-white flex flex-col justify-between border border-white/5 relative overflow-hidden shadow-2xl group">
+          <div className="relative z-10">
+            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10 mb-8">
+              <Package className="w-8 h-8 text-gold" />
+            </div>
+            <h3 className="text-3xl font-bold italic font-display mb-4">Lưu ý quản vận</h3>
+            <p className="text-white/40 text-sm leading-relaxed font-medium">Đừng quên kiểm tra các yêu cầu tư vấn mới từ khách hàng để đảm bảo tỷ lệ chuyển đổi tối ưu cho HerbSpaLab.</p>
+          </div>
+          <button className="relative z-10 w-full py-5 bg-gold text-ink rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] hover:bg-white transition-all shadow-xl active:scale-95">
+            Kiểm tra yêu cầu mới
+          </button>
+          
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-gold/5 blur-3xl rounded-full group-hover:bg-gold/10 transition-all" />
+          <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-mint/5 blur-3xl rounded-full group-hover:bg-mint/10 transition-all" />
         </div>
       </div>
     </div>

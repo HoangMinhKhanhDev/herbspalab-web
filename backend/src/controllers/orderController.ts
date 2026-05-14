@@ -165,3 +165,16 @@ export const updateOrderToDelivered = asyncHandler(async (req: Request, res: Res
     throw new Error('Không tìm thấy đơn hàng');
   }
 });
+
+// @desc    Delete order (Admin)
+export const deleteOrder = asyncHandler(async (req: Request, res: Response) => {
+  const order = await prisma.order.findUnique({ where: { id: req.params.id as string } });
+
+  if (order) {
+    await prisma.order.delete({ where: { id: req.params.id as string } });
+    res.json({ message: 'Đơn hàng đã bị xóa' });
+  } else {
+    res.status(404);
+    throw new Error('Không tìm thấy đơn hàng');
+  }
+});
