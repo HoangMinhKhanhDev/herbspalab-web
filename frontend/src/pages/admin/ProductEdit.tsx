@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Save, Image as ImageIcon, FileText, Database, 
   Plus, Trash2, Video, Globe, Sparkles, ArrowLeft, 
-  Info, Target, Layers, Clock, ChevronRight, LayoutGrid, Zap, Eye, CheckCircle2, AlertCircle, X
+  Info, Target, Layers, Clock, ChevronRight, LayoutGrid, Zap, CheckCircle2, AlertCircle, X, Upload
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';

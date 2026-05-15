@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Settings,
   MessageSquare, Database, FileText, Newspaper,
   LogOut, ChevronRight, User, BarChart3, Menu, X, Bell,
-  Search, Globe, ExternalLink
+  Search, Globe
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 

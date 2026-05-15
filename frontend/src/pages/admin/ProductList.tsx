@@ -77,15 +77,6 @@ const ProductList: React.FC = () => {
     }
   };
 
-  const quickUpdate = async (id: string, updates: any) => {
-    try {
-      await bulkUpdateProducts([{ id, ...updates }]);
-      toast.success('Đã cập nhật');
-      loadProducts();
-    } catch (error) {
-      toast.error('Lỗi cập nhật nhanh');
-    }
-  };
 
   const handleExportCSV = async () => {
     try {

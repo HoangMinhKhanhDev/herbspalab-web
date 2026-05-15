@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Database, Plus, Trash2, X, ChevronRight, LayoutGrid, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Database, Plus, Trash2, X, LayoutGrid, Info, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getAttributes, createAttribute, deleteAttribute } from '../../api/adminApi';
 import toast from 'react-hot-toast';
 
