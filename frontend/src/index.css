@@ -20,7 +20,7 @@
   --font-sans: "Outfit", sans-serif;
 }
 
-/* ═══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════ */
 
 /* ─── HSL Color Palette ─── */
 :root {
@@ -329,6 +329,16 @@ img {
 .toast-error { border-left: 4px solid #ef4444; }
 
 /* ─── Loading Bar ─── */
+@keyframes loadingBar {
+  0% { width: 0; left: 0; }
+  50% { width: 70%; left: 0; }
+  100% { width: 100%; left: 0; }
+}
+
+.animate-loading-bar {
+  animation: loadingBar 1.5s ease-in-out infinite;
+}
+
 #loading-bar {
   position: fixed;
   top: 0;
@@ -420,7 +430,7 @@ img {
 @media print {
   body { background: white !important; color: black !important; font-size: 12pt; }
   nav, footer, .no-print, button, .admin-sidebar, .admin-header { display: none !important; }
-  .max-w-[1100px] { max-width: 100% !important; margin: 0 !important; width: 100% !important; }
+  .max-w-\[1100px\] { max-width: 100% !important; margin: 0 !important; width: 100% !important; }
   .bg-white { background: white !important; border: none !important; }
   .bg-gray-50, .bg-gray-50\/30 { background: white !important; }
   .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl { box-shadow: none !important; }

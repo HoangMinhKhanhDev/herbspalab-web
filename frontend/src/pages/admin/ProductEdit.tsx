@@ -185,7 +185,7 @@ const ProductEdit: React.FC = () => {
   const labelCls = "block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5";
 
   return (
-    <div className="space-y-10 animate-fadeIn pb-32">
+    <div className="space-y-10 pb-32">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">

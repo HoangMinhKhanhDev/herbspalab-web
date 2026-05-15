@@ -44,7 +44,9 @@ import ScrollToTop from './components/common/ScrollToTop';
 import { useAuth } from './context/AuthContext';
 
 const PageLoader = () => (
-  <div className="loader-container"><div className="loader"></div></div>
+  <div className="fixed top-0 left-0 w-full z-[10000] pointer-events-none">
+    <div className="h-1 bg-sage animate-loading-bar shadow-[0_0_10px_rgba(26,36,32,0.3)]"></div>
+  </div>
 );
 
 import { Toaster } from 'react-hot-toast';
@@ -142,7 +144,7 @@ function App() {
         <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <AnimatePresence mode="wait">
-              <Routes location={location} key={location.pathname}>
+              <Routes location={location}>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/products" element={<Products />} />

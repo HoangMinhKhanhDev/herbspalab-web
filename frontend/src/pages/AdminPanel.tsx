@@ -193,7 +193,7 @@ const AdminPanel: React.FC = () => {
 
         {/* Scrolling Content */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
-          <div className="max-w-[1600px] mx-auto animate-fadeIn">
+          <div className="max-w-[1600px] mx-auto">
             <Outlet />
           </div>
         </main>

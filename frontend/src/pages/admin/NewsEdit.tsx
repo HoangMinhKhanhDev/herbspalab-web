@@ -120,7 +120,7 @@ const NewsEdit: React.FC = () => {
   const inputCls = "w-full px-5 py-4 rounded-2xl bg-white border border-gray-100 focus:border-sage focus:ring-4 focus:ring-sage/5 outline-none font-bold text-gray-900 transition-all text-[13px] shadow-sm placeholder:text-gray-300";
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-32 animate-fadeIn">
+    <div className="max-w-[1400px] mx-auto pb-32">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div className="flex items-center gap-5">

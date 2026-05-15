@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Search, Edit, Trash2, Download, Upload, ChevronLeft, ChevronRight, Copy, Plus, Filter, MoreVertical, ExternalLink, Database } from 'lucide-react';
-import { fetchProducts, deleteProduct, exportProductsCSV, importProductsCSV, duplicateProduct, bulkUpdateProducts } from '../../api/productApi';
+import { fetchProducts, deleteProduct, exportProductsCSV, importProductsCSV, duplicateProduct } from '../../api/productApi';
 import { getCategories } from '../../api/adminApi';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -108,7 +108,7 @@ const ProductList: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6">
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
