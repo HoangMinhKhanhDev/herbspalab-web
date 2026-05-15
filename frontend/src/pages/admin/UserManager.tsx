@@ -78,14 +78,14 @@ const UserManager: React.FC = () => {
   );
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col items-center text-center gap-6 mb-10">
+        <div className="max-w-2xl">
           <h1 className="text-3xl font-black text-[#1a2420] tracking-tight">Cơ sở dữ liệu Người dùng</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Quản lý quyền truy cập, bảo mật và thông tin cá nhân khách hàng.</p>
+          <p className="text-sm text-gray-500 font-medium mt-2">Quản lý quyền truy cập, bảo mật và thông tin cá nhân khách hàng HerbSpaLab.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-sage transition-colors" size={16} />
             <input 

@@ -110,28 +110,28 @@ const ProductList: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#1a2420] tracking-tight">Quản lý Sản phẩm</h1>
-          <p className="text-xs text-gray-500 font-medium mt-1">Hệ thống có tổng cộng {products.length} sản phẩm đang được niêm yết.</p>
+      <div className="flex flex-col items-center text-center gap-6 mb-10">
+        <div className="max-w-2xl">
+          <h1 className="text-3xl font-black text-[#1a2420] tracking-tight">Quản lý Sản phẩm</h1>
+          <p className="text-sm text-gray-500 font-medium mt-2">Hệ thống có tổng cộng {products.length} sản phẩm đang được niêm yết.</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center p-1 bg-white border border-gray-200 rounded-xl shadow-sm">
-            <button onClick={handleExportCSV} className="p-2 text-gray-500 hover:text-sage hover:bg-sage/5 rounded-lg transition-all" title="Xuất CSV">
-              <Download size={18} />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
+            <button onClick={handleExportCSV} className="p-2.5 text-gray-500 hover:text-sage hover:bg-sage/5 rounded-lg transition-all" title="Xuất CSV">
+              <Download size={20} />
             </button>
-            <div className="w-px h-4 bg-gray-200 mx-1"></div>
-            <button onClick={() => importRef.current?.click()} className="p-2 text-gray-500 hover:text-sage hover:bg-sage/5 rounded-lg transition-all" title="Nhập CSV">
-              <Upload size={18} />
+            <div className="w-px h-5 bg-gray-200 mx-2"></div>
+            <button onClick={() => importRef.current?.click()} className="p-2.5 text-gray-500 hover:text-sage hover:bg-sage/5 rounded-lg transition-all" title="Nhập CSV">
+              <Upload size={20} />
             </button>
           </div>
           <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImportCSV} />
           <button 
             onClick={() => navigate('/admin/products/new')} 
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#1a2420] text-white rounded-xl hover:bg-[#2c3b2e] transition-all font-bold text-xs shadow-lg shadow-[#1a2420]/10"
+            className="btn-admin-primary"
           >
-            <Plus size={16} strokeWidth={3} />
+            <Plus size={18} strokeWidth={3} />
             Tạo sản phẩm mới
           </button>
         </div>

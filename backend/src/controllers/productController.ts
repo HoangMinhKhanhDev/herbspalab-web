@@ -138,7 +138,8 @@ export const createProduct = asyncHandler(async (req: any, res: Response) => {
     name, price, salePrice, description, shortDescription, 
     images, categoryId, stock, sku, badge, videoUrl, 
     isPreorder, isNew, metaTitle, metaDescription, tags,
-    variants, thumbnail, preparationTime 
+    variants, thumbnail, preparationTime,
+    brand, material, condition, weight, length, width, height, sizeGuideUrl
   } = req.body;
 
   const slug = slugify(name);
@@ -166,6 +167,11 @@ export const createProduct = asyncHandler(async (req: any, res: Response) => {
       metaTitle,
       metaDescription,
       tags: processedTags,
+      brand, material, condition, sizeGuideUrl,
+      weight: weight ? Number(weight) : null,
+      length: length ? Number(length) : null,
+      width: width ? Number(width) : null,
+      height: height ? Number(height) : null,
       images: {
         create: (images || []).map((img: string) => ({ url: img }))
       },
@@ -231,7 +237,15 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
       thumbnail: restCleaned.thumbnail,
       metaTitle: restCleaned.metaTitle,
       metaDescription: restCleaned.metaDescription,
-      tags: Array.isArray(tags) ? tags.join(',') : tags
+      tags: Array.isArray(tags) ? tags.join(',') : tags,
+      brand: restCleaned.brand,
+      material: restCleaned.material,
+      condition: restCleaned.condition,
+      sizeGuideUrl: restCleaned.sizeGuideUrl,
+      weight: restCleaned.weight !== undefined && restCleaned.weight !== '' && restCleaned.weight !== null ? Number(restCleaned.weight) : null,
+      length: restCleaned.length !== undefined && restCleaned.length !== '' && restCleaned.length !== null ? Number(restCleaned.length) : null,
+      width: restCleaned.width !== undefined && restCleaned.width !== '' && restCleaned.width !== null ? Number(restCleaned.width) : null,
+      height: restCleaned.height !== undefined && restCleaned.height !== '' && restCleaned.height !== null ? Number(restCleaned.height) : null,
     };
 
     // Use relation syntax to be safe
@@ -346,39 +360,88 @@ export const importProductsCSV = asyncHandler(async (req: any, res: Response) =>
     throw new Error('Vui lòng tải lên file CSV');
   }
 
-  const csvContent = fs.readFileSync(req.file.path, 'utf-8');
-  const lines = csvContent.split('\n').filter(l => l.trim());
-  const headerLine = lines[0] || '';
-  const header = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
-  
-  let imported = 0;
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i] || '';
-    const vals = line.match(/(".*?"|[^,]+)/g)?.map(v => v.replace(/^"|"$/g, '').trim()) || [];
-    if (vals.length < 4) continue;
-    
-    const row: any = {};
-    header.forEach((h, j) => { row[h] = vals[j] || ''; });
-    
-    const name = row.name || 'Unnamed';
-    await prisma.product.create({
-      data: {
-        name,
-        slug: slugify(name) + '-' + Date.now(),
-        sku: row.sku || null,
-        categoryId: row.categoryId || null,
-        price: parseFloat(row.price) || 0,
-        salePrice: row.salePrice ? parseFloat(row.salePrice) : null,
-        stock: parseInt(row.stock) || 0,
-        shortDescription: row.shortDescription || null,
-        description: row.description || row.shortDescription || '',
-      }
-    });
-    imported++;
-  }
+  try {
+    const csvContent = fs.readFileSync(req.file.path, 'utf-8');
+    const lines = csvContent.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) {
+      throw new Error('File CSV trống hoặc không đúng định dạng');
+    }
 
-  fs.unlinkSync(req.file.path);
-  res.json({ success: true, imported });
+    const headerLine = lines[0] || '';
+    // Better CSV split that handles quotes and commas
+    const splitCSV = (str: string) => {
+      const result = [];
+      let start = 0;
+      let inQuotes = false;
+      for (let i = 0; i < str.length; i++) {
+        if (str[i] === '"') inQuotes = !inQuotes;
+        if (str[i] === ',' && !inQuotes) {
+          result.push(str.substring(start, i).replace(/^"|"$/g, '').trim());
+          start = i + 1;
+        }
+      }
+      result.push(str.substring(start).replace(/^"|"$/g, '').trim());
+      return result;
+    };
+
+    const header = splitCSV(headerLine);
+    const categories = await prisma.category.findMany();
+    const categoryMap = new Map(categories.map(c => [c.name.toLowerCase(), c.id]));
+    
+    let imported = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i] || '';
+      const vals = splitCSV(line);
+      if (vals.length < 2) continue;
+      
+      const row: any = {};
+      header.forEach((h, j) => { row[h] = vals[j] || ''; });
+      
+      const name = row.name || row.Name || 'Unnamed Product';
+      const sku = row.sku || row.SKU || null;
+      
+      // Map category name to ID
+      let categoryId = row.categoryId || row.CategoryId || null;
+      const catName = row.category || row.Category;
+      if (!categoryId && catName) {
+        categoryId = categoryMap.get(catName.toLowerCase()) || null;
+      }
+
+      const productData: any = {
+        name,
+        slug: (row.slug || slugify(name)) + '-' + Math.random().toString(36).substring(2, 7),
+        sku: sku,
+        categoryId: categoryId,
+        price: parseFloat(row.price || row.Price) || 0,
+        salePrice: (row.salePrice || row.SalePrice) ? parseFloat(row.salePrice || row.SalePrice) : null,
+        stock: parseInt(row.stock || row.Stock) || 0,
+        shortDescription: row.shortDescription || row.ShortDescription || null,
+        description: row.description || row.Description || row.shortDescription || '',
+        badge: row.tags || row.Tags || row.badge || null,
+      };
+
+      if (sku) {
+        // Upsert by SKU if exists, otherwise create
+        const existing = await prisma.product.findUnique({ where: { sku } });
+        if (existing) {
+          const { slug, ...updateData } = productData; // Don't change slug on update
+          await prisma.product.update({ where: { sku }, data: updateData });
+        } else {
+          await prisma.product.create({ data: productData });
+        }
+      } else {
+        await prisma.product.create({ data: productData });
+      }
+      imported++;
+    }
+
+    fs.unlinkSync(req.file.path);
+    res.json({ success: true, imported });
+  } catch (error: any) {
+    if (req.file) fs.unlinkSync(req.file.path);
+    res.status(500);
+    throw new Error(error.message || 'Lỗi xử lý file CSV');
+  }
 });
 
 // @desc    Duplicate a product

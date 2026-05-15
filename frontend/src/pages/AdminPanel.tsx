@@ -8,6 +8,109 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+interface SidebarContentProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  navItems: any[];
+  logout: () => void;
+  user: any;
+}
+
+const SidebarContent: React.FC<SidebarContentProps> = ({ sidebarOpen, setSidebarOpen, navItems, logout, user }) => (
+  <div className="flex flex-col h-full bg-[#1a2420] text-gray-400">
+    {/* Brand Header */}
+    <div className={`h-20 flex items-center border-b border-white/5 ${sidebarOpen ? 'px-4' : 'px-3'} gap-2`}>
+      {/* Toggle Button - Same size/alignment as nav items */}
+      <div className={sidebarOpen ? 'w-12' : 'w-full aspect-square'}>
+        <button 
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className={`w-full h-full flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300
+            ${sidebarOpen ? 'p-2.5' : ''}`}
+          title={sidebarOpen ? "Thu gọn" : "Mở rộng"}
+        >
+          <Menu size={22} className={sidebarOpen ? '' : 'text-[#bca37f]'} />
+        </button>
+      </div>
+
+      {/* Brand Identity - Positioned to the right of the toggle */}
+      {sidebarOpen && (
+        <Link to="/" className="flex items-center gap-3 overflow-hidden group">
+          <div className="w-10 h-10 bg-white/5 rounded-xl p-2 flex items-center justify-center flex-shrink-0 group-hover:bg-[#bca37f]/20 transition-all duration-300">
+            <img src="/assets/images/logo.svg" alt="HerbSpa" className="w-full h-full object-contain" />
+          </div>
+          <div className="overflow-hidden whitespace-nowrap">
+            <h2 className="text-base font-black text-white tracking-tight leading-none mb-0.5">HerbSpaLab</h2>
+            <p className="text-[10px] font-bold text-[#bca37f] uppercase tracking-widest">Admin</p>
+          </div>
+        </Link>
+      )}
+    </div>
+
+    {/* Nav Links */}
+    <nav className={`flex-1 overflow-y-auto py-10 space-y-4 custom-scrollbar-hidden ${sidebarOpen ? 'px-4' : 'px-3'}`}>
+      {navItems.map((item, idx) => {
+        if ('group' in item) {
+          return sidebarOpen ? (
+            <p key={idx} className="text-[11px] font-black text-gray-600 uppercase tracking-[0.3em] px-5 pt-12 pb-4">
+              {item.group}
+            </p>
+          ) : <div key={idx} className="h-px bg-white/5 my-8 mx-2" />;
+        }
+
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to!}
+            end={item.end}
+            className={({ isActive }) => `
+              flex items-center group relative transition-all duration-300 rounded-2xl font-bold
+              ${sidebarOpen ? 'px-6 py-5' : 'justify-center w-full aspect-square'}
+              ${isActive
+                ? 'bg-[#bca37f] text-white shadow-xl shadow-[#bca37f]/25 ring-1 ring-white/10'
+                : 'hover:bg-white/5 hover:text-white text-gray-400'}
+            `}
+            title={!sidebarOpen ? item.label : undefined}
+          >
+            {({ isActive }) => (
+              <>
+                <div className={`flex items-center ${sidebarOpen ? 'gap-6' : 'justify-center'}`}>
+                  <item.icon className={`transition-all duration-500 ${sidebarOpen ? 'w-6.5 h-6.5 group-hover:scale-110' : 'w-7.5 h-7.5'}`} strokeWidth={isActive ? 2.5 : 2} />
+                  {sidebarOpen && <span className="text-[16px] tracking-wide whitespace-nowrap">{item.label}</span>}
+                </div>
+                
+                {sidebarOpen && (
+                  <ChevronRight className={`w-4.5 h-4.5 ml-auto opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0`} />
+                )}
+                
+                {!sidebarOpen && (
+                  <div className="fixed left-24 px-4 py-2 bg-[#1a2420] text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-2xl border border-white/10 z-50 whitespace-nowrap translate-x-[-10px] group-hover:translate-x-0">
+                    {item.label}
+                  </div>
+                )}
+              </>
+            )}
+          </NavLink>
+        );
+      })}
+    </nav>
+
+    {/* Logout Link */}
+    <div className={`p-6 border-t border-white/5 bg-black/20`}>
+        <button 
+          onClick={logout}
+          className={`flex items-center rounded-2xl font-bold transition-all duration-300 group
+            ${sidebarOpen ? 'px-5 py-3.5 w-full' : 'justify-center w-full aspect-square'}
+            text-gray-400 hover:bg-red-500/10 hover:text-red-400`}
+        >
+          <div className={`flex items-center ${sidebarOpen ? 'gap-4' : 'justify-center'}`}>
+            <LogOut size={22} className="transition-transform group-hover:rotate-12" />
+            {sidebarOpen && <span className="text-[14px] tracking-wide whitespace-nowrap">Đăng xuất</span>}
+          </div>
+        </button>
+    </div>
+  </div>
+);
+
 const AdminPanel: React.FC = () => {
   const { logout, user } = useAuth();
   const location = useLocation();
@@ -39,161 +142,110 @@ const AdminPanel: React.FC = () => {
   const getBreadcrumb = () => {
     const path = location.pathname.replace('/admin', '').replace(/^\//, '');
     if (!path) return 'Dashboard';
-    const item = navItems.find(n => 'to' in n && n.to === `/admin/${path.split('/')[0]}`);
-    return (item as any)?.label || path;
+    const firstSegment = path.split('/')[0];
+    const item = navItems.find(n => 'to' in n && n.to === `/admin/${firstSegment}`);
+    return (item as any)?.label || firstSegment;
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-[#1a2420] text-gray-400">
-      {/* Brand Logo */}
-      <div className={`h-20 flex items-center border-b border-white/5 ${sidebarOpen ? 'px-6' : 'justify-center'}`}>
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#bca37f] text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-[#bca37f]/20 flex-shrink-0">H</div>
-          {sidebarOpen && (
-            <div className="overflow-hidden">
-              <h2 className="text-lg font-bold text-white tracking-tight">HerbSpa</h2>
-              <div className="flex items-center gap-1">
-                <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                <p className="text-[10px] font-bold text-[#bca37f] uppercase tracking-widest">Admin Center</p>
-              </div>
-            </div>
-          )}
-        </Link>
-      </div>
-
-      {/* Nav Links */}
-      <nav className={`flex-1 overflow-y-auto py-6 space-y-1 custom-scrollbar ${sidebarOpen ? 'px-4' : 'px-2'}`}>
-        {navItems.map((item, idx) => {
-          if ('group' in item) {
-            return sidebarOpen ? (
-              <p key={idx} className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-4 pt-4 pb-2">
-                {item.group}
-              </p>
-            ) : <div key={idx} className="h-px bg-white/5 my-4" />;
-          }
-
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to!}
-              end={item.end}
-              className={({ isActive }) => `
-                flex items-center group relative ${sidebarOpen ? 'px-4 py-2.5' : 'justify-center py-3'} rounded-xl font-medium transition-all duration-200
-                ${isActive
-                  ? 'bg-[#bca37f] text-white shadow-lg shadow-[#bca37f]/20'
-                  : 'hover:bg-white/5 hover:text-white'}
-              `}
-              title={!sidebarOpen ? item.label : undefined}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 transition-transform duration-300 ${sidebarOpen ? 'group-hover:scale-110' : ''}`} />
-                {sidebarOpen && <span className="text-[13px] tracking-wide">{item.label}</span>}
-              </div>
-              {sidebarOpen && (
-                <ChevronRight className={`w-4 h-4 ml-auto opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0`} />
-              )}
-            </NavLink>
-          );
-        })}
-      </nav>
-
-      {/* Profile Footer */}
-      <div className={`p-4 border-t border-white/5 bg-black/10`}>
-        {sidebarOpen ? (
-          <div className="p-3 rounded-xl bg-white/5 border border-white/5 group hover:bg-white/10 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#bca37f] flex items-center justify-center font-bold text-white text-sm shrink-0 border-2 border-white/10 uppercase">
-                {user?.name?.charAt(0) || 'A'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-white truncate">{user?.name || 'Administrator'}</p>
-                <p className="text-[10px] text-gray-500 truncate">{user?.email || 'admin@herbspalab.com'}</p>
-              </div>
-              <button 
-                onClick={logout} 
-                className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
-                title="Đăng xuất"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button onClick={logout} title="Đăng xuất" className="w-full py-4 flex items-center justify-center text-gray-500 hover:text-red-400 transition-colors">
-            <LogOut className="w-5 h-5" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="flex min-h-screen bg-[#f8f9f8] font-sans text-gray-900">
-      {/* Mobile Sidebar Overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
-      )}
-      
-      {/* Mobile Sidebar Container */}
-      <aside className={`fixed top-0 left-0 h-screen w-72 bg-[#1a2420] z-50 transform transition-transform duration-300 lg:hidden shadow-2xl ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <button onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white lg:hidden">
-          <X className="w-6 h-6" />
-        </button>
-        <SidebarContent />
+    <div className="flex h-screen bg-white overflow-hidden font-sans selection:bg-[#bca37f]/30">
+      {/* Sidebar - Desktop */}
+      <aside 
+        className={`hidden lg:flex flex-col flex-shrink-0 bg-[#1a2420] border-r border-white/5 relative z-30 shadow-2xl transition-[width] duration-500 ease-in-out overflow-hidden ${
+          sidebarOpen ? 'w-[300px]' : 'w-[100px]'
+        }`}
+      >
+        <SidebarContent 
+          sidebarOpen={sidebarOpen} 
+          setSidebarOpen={setSidebarOpen} 
+          navItems={navItems} 
+          logout={logout} 
+          user={user} 
+        />
       </aside>
 
-      {/* Desktop Sidebar Container */}
-      <aside className={`hidden lg:flex ${sidebarOpen ? 'w-72' : 'w-20'} sticky top-0 h-screen z-30 transition-all duration-300 shadow-xl`}>
-        <SidebarContent />
+      {/* Mobile Sidebar */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside className={`
+        fixed inset-y-0 left-0 w-80 bg-[#1a2420] z-[101] lg:hidden transition-transform duration-500 ease-out shadow-2xl
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="flex flex-col h-full">
+           <div className="h-20 flex items-center justify-between px-6 border-b border-white/5">
+              <Link to="/" className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#bca37f] text-white rounded-xl flex items-center justify-center font-bold text-xl">H</div>
+                <h2 className="text-lg font-bold text-white tracking-tight">HerbSpa</h2>
+              </Link>
+              <button onClick={() => setMobileOpen(false)} className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg">
+                <X size={20} />
+              </button>
+           </div>
+           <div className="flex-1 overflow-y-auto">
+              <SidebarContent 
+                sidebarOpen={true} 
+                setSidebarOpen={() => setMobileOpen(false)} 
+                navItems={navItems} 
+                logout={logout} 
+                user={user} 
+              />
+           </div>
+        </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-500 ease-in-out bg-white">
         {/* Global Header */}
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
+        <header className="h-20 bg-white/90 backdrop-blur-xl border-b border-gray-200 flex items-center justify-between px-14 sticky top-0 z-20 shadow-sm">
           <div className="flex items-center gap-6">
-            <button onClick={() => setMobileOpen(true)} className="p-2 text-gray-500 hover:text-[#1a2420] lg:hidden">
+            <button onClick={() => setMobileOpen(true)} className="p-3 text-gray-500 hover:text-[#1a2420] lg:hidden bg-gray-50 rounded-xl">
               <Menu className="w-6 h-6" />
             </button>
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden lg:block p-2 text-gray-400 hover:text-[#1a2420] transition-colors">
-              <Menu className="w-5 h-5" />
-            </button>
             
-            <div className="hidden md:flex items-center gap-2 text-[13px] font-medium text-gray-500">
-              <span className="hover:text-gray-900 cursor-pointer transition-colors">Hệ thống</span>
-              <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-              <span className="text-[#1a2420] font-bold">{getBreadcrumb()}</span>
+            <div className="hidden md:flex items-center gap-3 text-[14px] font-semibold text-gray-400 pl-16">
+              <span className="hover:text-[#1a2420] cursor-pointer transition-colors">Hệ thống</span>
+              <ChevronRight className="w-4 h-4 text-gray-200" />
+              <span className="text-[#1a2420] font-black">{getBreadcrumb()}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-1.5 mr-4 border border-gray-200 focus-within:border-[#bca37f] transition-all">
-              <Search className="w-4 h-4 text-gray-400" />
-              <input type="text" placeholder="Tìm nhanh..." className="bg-transparent border-none outline-none text-xs ml-2 w-48 text-gray-600" />
+          <div className="flex items-center gap-4">
+            <div className="hidden xl:flex items-center bg-gray-50 rounded-2xl px-5 py-2.5 border border-gray-100 focus-within:border-[#bca37f] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#bca37f]/5 transition-all group">
+              <Search className="w-4 h-4 text-gray-400 group-focus-within:text-[#bca37f]" />
+              <input type="text" placeholder="Tìm kiếm nhanh..." className="bg-transparent border-none outline-none text-sm ml-3 w-64 text-gray-600 placeholder:text-gray-400" />
             </div>
 
-            <Link to="/" target="_blank" className="p-2 text-gray-400 hover:text-[#bca37f] transition-colors" title="Xem trang chủ">
-              <Globe className="w-5 h-5" />
+            <Link to="/" target="_blank" className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-[#bca37f] hover:bg-[#bca37f]/5 rounded-1.5xl transition-all" title="Xem trang chủ">
+              <Globe className="w-5.5 h-5.5" />
             </Link>
 
-            <div className="h-6 w-px bg-gray-200 mx-2"></div>
+            <div className="h-8 w-px bg-gray-100 mx-2"></div>
 
-            <button className="relative p-2 text-gray-400 hover:text-[#1a2420] transition-all hover:bg-gray-50 rounded-lg">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white ring-2 ring-red-500/20"></span>
+            <button className="relative w-11 h-11 flex items-center justify-center text-gray-400 hover:text-[#1a2420] transition-all hover:bg-gray-50 rounded-1.5xl">
+              <Bell className="w-5.5 h-5.5" />
+              <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white ring-2 ring-red-500/20"></span>
             </button>
 
-            <button className="flex items-center gap-3 p-1.5 hover:bg-gray-50 rounded-xl transition-all ml-2">
-              <div className="w-8 h-8 rounded-lg bg-sage/10 text-sage flex items-center justify-center font-bold text-xs uppercase border border-sage/20">
+            <button className="flex items-center gap-3 p-1.5 hover:bg-gray-50 rounded-2xl transition-all ml-2 group border border-transparent hover:border-gray-100">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1a2420] to-[#2c3b2e] text-[#bca37f] flex items-center justify-center font-black text-sm uppercase shadow-lg shadow-[#1a2420]/10">
                 {user?.name?.charAt(0) || 'A'}
+              </div>
+              <div className="hidden lg:block text-left mr-2">
+                 <p className="text-[13px] font-black text-[#1a2420] leading-none mb-1">{user?.name || 'Administrator'}</p>
+                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Master Admin</p>
               </div>
             </button>
           </div>
         </header>
 
         {/* Scrolling Content */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
-          <div className="max-w-[1600px] mx-auto">
+        <main className="flex-1 overflow-y-auto p-12 lg:p-20 custom-scrollbar bg-white">
+          <div className="w-full mx-auto pb-20">
             <Outlet />
           </div>
         </main>

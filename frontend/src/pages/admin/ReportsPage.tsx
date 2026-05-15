@@ -33,14 +33,16 @@ const ReportsPage: React.FC = () => {
   const deviceIcons: any = { Desktop: Monitor, Mobile: Smartphone, Tablet: Tablet };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Báo cáo Phân tích</h1>
-          <p className="text-sm text-gray-500">Thống kê lưu lượng truy cập và dữ liệu khách hàng</p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col items-center text-center gap-6 mb-10">
+        <div className="max-w-2xl">
+          <h1 className="text-3xl font-black text-[#1a2420] tracking-tight">Báo cáo Phân tích</h1>
+          <p className="text-sm text-gray-500 font-medium mt-2">Thống kê lưu lượng truy cập và dữ liệu khách hàng chuyên sâu từ hệ thống HerbSpaLab.</p>
         </div>
-        <button onClick={fetchData} className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg bg-white text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
-          <RefreshCw size={16} /> Làm mới
+        <button onClick={fetchData} className="flex items-center gap-2.5 px-6 py-3 bg-white border border-gray-100 text-[#1a2420] rounded-xl hover:bg-gray-50 transition-all font-bold text-xs shadow-sm">
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+          Làm mới báo cáo
         </button>
       </div>
 

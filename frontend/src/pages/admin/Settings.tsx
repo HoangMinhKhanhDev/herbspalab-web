@@ -90,20 +90,20 @@ const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-10 animate-fadeIn pb-20">
+    <div className="space-y-10 pb-20">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
+      <div className="flex flex-col items-center text-center gap-6 mb-12">
+        <div className="max-w-2xl">
           <h1 className="text-3xl font-black text-[#1a2420] tracking-tight">Cài đặt Hệ thống</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Cấu hình vận hành, bảo mật và trải nghiệm quản trị viên.</p>
+          <p className="text-sm text-gray-500 font-medium mt-2">Cấu hình vận hành, bảo mật và trải nghiệm quản trị viên HerbSpaLab.</p>
         </div>
         <button 
           onClick={handleSave}
           disabled={saving}
-          className="px-8 py-4 bg-[#1a2420] text-white rounded-[1.5rem] flex items-center gap-2 font-black text-sm hover:bg-[#2c3b2e] transition-all shadow-xl shadow-[#1a2420]/10 disabled:opacity-50 group"
+          className="btn-admin-primary disabled:opacity-50"
         >
-          {saving ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 transition-transform group-hover:scale-110" />}
-          Lưu cấu hình ngay
+          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+          Lưu cấu hình hệ thống
         </button>
       </div>
 

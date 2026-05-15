@@ -52,16 +52,16 @@ const NewsManager: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col items-center text-center gap-6 mb-10">
+        <div className="max-w-2xl">
           <h1 className="text-3xl font-black text-[#1a2420] tracking-tight">Quản lý Tin tức</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Cập nhật những kiến thức và tin tức mới nhất từ HerbSpaLab.</p>
+          <p className="text-sm text-gray-500 font-medium mt-2">Cập nhật những kiến thức và tin tức mới nhất từ HerbSpaLab.</p>
         </div>
         <button 
           onClick={() => navigate('/admin/news/new')}
-          className="flex items-center gap-2 px-6 py-3 bg-[#1a2420] text-white rounded-2xl hover:bg-[#2c3b2e] transition-all font-bold text-sm shadow-xl shadow-[#1a2420]/10 group"
+          className="btn-admin-primary"
         >
-          <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-300" />
+          <Plus size={18} strokeWidth={3} />
           Viết bài mới
         </button>
       </div>

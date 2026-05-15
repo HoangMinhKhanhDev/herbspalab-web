@@ -85,25 +85,25 @@ const AdminDashboard: React.FC = () => {
   if (!stats) return null;
 
   return (
-    <div className="space-y-8 animate-fadeIn pb-10">
+    <div className="space-y-10 pb-10">
       {/* Page Heading */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-[10px] font-bold text-sage uppercase tracking-widest mb-1">
-            <Calendar size={12} /> {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+      <div className="flex flex-col items-center text-center gap-6 mb-12">
+        <div className="max-w-2xl">
+          <div className="flex items-center justify-center gap-2 text-[11px] font-bold text-[#bca37f] uppercase tracking-[0.2em] mb-3">
+            <Calendar size={14} /> {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
-          <h1 className="text-3xl font-black text-[#1a2420] tracking-tight">Bảng điều khiển</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Chào mừng trở lại, Administrator.</p>
+          <h1 className="text-4xl font-black text-[#1a2420] tracking-tight mb-2">Bảng điều khiển</h1>
+          <p className="text-sm text-gray-500 font-medium">Chào mừng trở lại, Administrator. Hệ thống của bạn đang hoạt động ổn định.</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={fetchStats}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl bg-white text-xs font-bold text-gray-600 hover:border-sage hover:text-sage transition-all shadow-sm"
+            className="flex items-center gap-2.5 px-6 py-3 bg-white border border-gray-100 text-[#1a2420] rounded-xl hover:bg-gray-50 transition-all font-bold text-xs shadow-sm"
           >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             Làm mới dữ liệu
           </button>
-          <Link to="/admin/reports" className="px-5 py-2.5 bg-[#1a2420] text-white text-xs font-bold rounded-xl shadow-lg shadow-[#1a2420]/20 hover:bg-[#2c3b2e] transition-all flex items-center gap-2">
+          <Link to="/admin/reports" className="px-5 py-3 bg-[#1a2420] text-white text-xs font-bold rounded-xl shadow-lg shadow-[#1a2420]/20 hover:bg-[#2c3b2e] transition-all flex items-center gap-2">
             Tải báo cáo <ArrowRight size={14} />
           </Link>
         </div>

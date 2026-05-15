@@ -81,17 +81,31 @@ const swaggerOptions = {
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-// Middleware
+// Simple in-memory cache for de-duplicating traffic logs (prevent double counting in dev/fast nav)
+const trafficCache = new Map<string, number>();
+
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api') && !req.path.startsWith('/api/admin')) {
-    prisma.trafficLog.create({
-      data: {
-        path: req.path,
-        ip: req.ip || null,
-        referrer: req.get('referrer') || null,
-        userAgent: req.get('user-agent') || null,
-      }
-    } as any).catch(() => {});
+  // Only log non-admin GET requests as traffic/views
+  if (req.method === 'GET' && req.path.startsWith('/api') && !req.path.startsWith('/api/admin')) {
+    const cacheKey = `${req.ip}-${req.path}`;
+    const now = Date.now();
+    const lastLog = trafficCache.get(cacheKey) || 0;
+
+    // Only log if it's been more than 5 seconds since the last identical request from this IP
+    if (now - lastLog > 5000) {
+      trafficCache.set(cacheKey, now);
+      prisma.trafficLog.create({
+        data: {
+          path: req.path,
+          ip: req.ip || null,
+          referrer: req.get('referrer') || null,
+          userAgent: req.get('user-agent') || null,
+        }
+      } as any).catch(() => {});
+      
+      // Cleanup cache periodically
+      if (trafficCache.size > 1000) trafficCache.clear();
+    }
   }
   next();
 });

@@ -75,6 +75,15 @@ model Product {
   tags             String?          // JSON string or comma-separated
   metaTitle        String?
   metaDescription  String?
+  // Advanced e-commerce fields (Shopee style)
+  brand            String?          @default("No Brand")
+  material         String?
+  condition        String?          @default("Mới")
+  weight           Float?
+  length           Float?
+  width            Float?
+  height           Float?
+  sizeGuideUrl     String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   images           ProductImage[]
