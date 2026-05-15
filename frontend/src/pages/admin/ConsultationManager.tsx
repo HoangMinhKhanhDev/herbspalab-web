@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Trash2, MessageSquare, Phone, Calendar, CheckCircle, Clock, Sparkles, PhoneCall } from 'lucide-react';
+import { Trash2, MessageSquare, Phone, Calendar, CheckCircle, Clock, PhoneCall, Filter } from 'lucide-react';
 import { adminFetchConsultations, adminDeleteConsultation, updateConsultationStatus } from '../../api/adminApi';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/format';
-import AdminEmptyState from '../../components/admin/AdminEmptyState';
-import AdminLoadingSkeleton from '../../components/admin/AdminLoadingSkeleton';
 
 const statusConfig: any = {
-  PENDING: { label: 'Chờ xử lý', color: 'bg-amber-50 text-amber-600 border-amber-200', icon: Clock },
-  CONTACTED: { label: 'Đã liên hệ', color: 'bg-blue-50 text-blue-500 border-blue-200', icon: PhoneCall },
-  COMPLETED: { label: 'Hoàn tất', color: 'bg-emerald-50 text-emerald-600 border-emerald-200', icon: CheckCircle },
+  PENDING: { label: 'Chờ xử lý', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
+  CONTACTED: { label: 'Đã liên hệ', color: 'bg-blue-100 text-blue-700', icon: PhoneCall },
+  COMPLETED: { label: 'Hoàn tất', color: 'bg-green-100 text-green-700', icon: CheckCircle },
 };
 
 const ConsultationManager: React.FC = () => {
@@ -38,92 +36,100 @@ const ConsultationManager: React.FC = () => {
     catch (e: any) { toast.error(e.response?.data?.message || 'Lỗi cập nhật'); }
   };
 
-  // Removed inline loading logic
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-amber-600/80 font-bold text-[10px] uppercase tracking-[0.2em] mb-1"><Sparkles className="w-3 h-3" /> Client Relations</div>
-          <h1 className="text-3xl font-bold text-sage tracking-tight">Quản lý Tư vấn</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý Tư vấn</h1>
+          <p className="text-sm text-gray-500">Yêu cầu hỗ trợ từ khách hàng và khách vãng lai</p>
         </div>
       </div>
 
-      {/* Status Filter */}
-      <div className="flex flex-wrap gap-2">
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 mr-4">
+          <Filter size={16} className="text-gray-400" />
+          <span className="text-xs font-bold text-gray-500 uppercase">Trạng thái:</span>
+        </div>
         {[{ key: 'ALL', label: 'Tất cả' }, ...Object.entries(statusConfig).map(([k, v]: any) => ({ key: k, label: v.label }))].map(tab => (
-          <button key={tab.key} onClick={() => setStatusFilter(tab.key)}
-            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${statusFilter === tab.key ? 'bg-ink text-white border-ink shadow-md' : 'bg-white text-sage/40 border-black/5 hover:text-sage'}`}>
+          <button 
+            key={tab.key} 
+            onClick={() => setStatusFilter(tab.key)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              statusFilter === tab.key ? 'bg-sage text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Cards Layout */}
+      {/* Content */}
       {loading ? (
-        <AdminLoadingSkeleton type="grid" count={6} />
+        <div className="p-20 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto"></div>
+        </div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {consultations.map((item) => {
-          const sc = statusConfig[item.status] || statusConfig.PENDING;
-          const StatusIcon = sc.icon;
-          return (
-            <div key={item.id} className="bg-white rounded-2xl border border-black/5 p-5 shadow-sm hover:shadow-lg transition-all group">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-mint/10 text-mint rounded-xl flex items-center justify-center font-bold text-sm border border-mint/10">
-                    {item.userName?.charAt(0).toUpperCase() || 'U'}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {consultations.map((item) => {
+            const sc = statusConfig[item.status] || statusConfig.PENDING;
+            const StatusIcon = sc.icon;
+            return (
+              <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow group">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-100 text-gray-500 rounded-lg flex items-center justify-center font-bold text-sm">
+                      {item.userName?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-sm">{item.userName}</h4>
+                      <a href={`tel:${item.phone}`} className="flex items-center gap-1 text-xs text-sage hover:underline">
+                        <Phone size={12} /> {item.phone}
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sage text-sm">{item.userName}</h4>
-                    <a href={`tel:${item.phone}`} className="flex items-center gap-1 text-xs text-amber-600 font-medium hover:underline">
-                      <Phone className="w-3 h-3" /> {item.phone}
-                    </a>
+                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${sc.color}`}>
+                    <StatusIcon size={10} /> {sc.label}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs text-gray-600 mb-6 min-h-[60px]">
+                  {item.category && <p><span className="font-bold text-gray-400 uppercase text-[9px]">Dịch vụ:</span> {item.category}</p>}
+                  {item.note && (
+                    <div className="bg-gray-50 p-2 rounded border border-gray-100 italic text-gray-500">
+                      "{item.note}"
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
+                    <Calendar size={12} /> {formatDate(item.createdAt)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      value={item.status} 
+                      onChange={(e) => handleStatusUpdate(item.id, e.target.value)}
+                      className="bg-gray-100 border-none rounded text-[10px] font-bold uppercase tracking-wider py-1 px-2 focus:ring-1 focus:ring-sage"
+                    >
+                      {Object.entries(statusConfig).map(([k, v]: any) => (<option key={k} value={k}>{v.label}</option>))}
+                    </select>
+                    <button onClick={() => handleDelete(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors">
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border ${sc.color}`}>
-                  <StatusIcon className="w-3 h-3" /> {sc.label}
-                </span>
               </div>
-
-              {/* Details */}
-              <div className="space-y-2 text-xs text-sage/60 mb-4">
-                {item.category && <p><span className="font-semibold text-sage/40">Loại:</span> {item.category}</p>}
-                {item.skinType && <p><span className="font-semibold text-sage/40">Da:</span> {item.skinType}</p>}
-                {item.note && <p className="italic text-sage/50 bg-gray-50 p-2 rounded-lg">"{item.note}"</p>}
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-black/5">
-                <div className="flex items-center gap-1 text-[10px] text-sage/30 font-medium">
-                  <Calendar className="w-3 h-3" /> {formatDate(item.createdAt)}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {/* Status update buttons */}
-                  <select value={item.status} onChange={(e) => handleStatusUpdate(item.id, e.target.value)}
-                    className="bg-gray-50 border border-black/5 hover:border-black/10 focus:border-mint focus:bg-white rounded-lg px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider text-sage cursor-pointer outline-none transition-all">
-                    {Object.entries(statusConfig).map(([k, v]: any) => (<option key={k} value={k}>{v.label}</option>))}
-                  </select>
-                  <a href={`tel:${item.phone}`} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:shadow-md transition-all border border-emerald-100" title="Gọi ngay">
-                    <PhoneCall className="w-3.5 h-3.5" />
-                  </a>
-                  <button onClick={() => handleDelete(item.id)} className="p-1.5 text-sage/20 hover:text-red-400 rounded-lg transition-all hover:bg-red-50">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-          </div>
-
+            );
+          })}
+          
           {consultations.length === 0 && (
-            <AdminEmptyState
-              icon={MessageSquare}
-              title="Không có yêu cầu tư vấn"
-              description="Hiện tại chưa có khách hàng nào gửi yêu cầu tư vấn."
-            />
+            <div className="col-span-full p-20 text-center text-gray-400 text-sm">
+              <MessageSquare className="mx-auto mb-2 opacity-20" size={48} />
+              Chưa có yêu cầu tư vấn nào.
+            </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

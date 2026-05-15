@@ -9,5 +9,8 @@ export const register = (userData: any) =>
 export const getProfile = () => 
   API.get('/users/profile');
 
+export const updateProfile = (userData: any) =>
+  API.put('/users/profile', userData);
+
 export const logout = () =>
   API.post('/users/logout');

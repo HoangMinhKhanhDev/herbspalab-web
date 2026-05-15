@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Save, Image as ImageIcon, FileText, Database, 
-  Plus, Trash2, Video, Globe, Sparkles, Check, ArrowLeft, 
+  Plus, Trash2, Video, Globe, Sparkles, ArrowLeft, 
   Info, Target, Layers, Clock
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
@@ -11,6 +11,8 @@ import { useDropzone } from 'react-dropzone';
 import toast from 'react-hot-toast';
 import { getProductDetails, updateProduct, createProduct } from '../../api/productApi';
 import { getCategories, getAttributes, adminUploadSingle, adminUploadMultiple } from '../../api/adminApi';
+import imageCompression from 'browser-image-compression';
+// Nếu bạn thấy lỗi "Failed to resolve import", hãy khởi động lại server (Ctrl+C rồi npm start)
 
 const ProductEdit: React.FC = () => {
   const { id } = useParams();
@@ -83,9 +85,14 @@ const ProductEdit: React.FC = () => {
   };
 
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
+    let file = e.target.files?.[0]; if (!file) return;
     setUploading(true);
     try { 
+      // Compress image before upload
+      if (file.type.startsWith('image/')) {
+        const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
+        file = await imageCompression(file, options);
+      }
       const { data } = await adminUploadSingle(file); 
       setFormData((p: any) => ({ ...p, thumbnail: data.url })); 
       toast.success('Tải ảnh thành công'); 
@@ -100,7 +107,16 @@ const ProductEdit: React.FC = () => {
     if (!acceptedFiles.length) return;
     setUploading(true);
     try { 
-      const { data } = await adminUploadMultiple(acceptedFiles); 
+      const compressedFiles = await Promise.all(
+        acceptedFiles.map(async (file) => {
+          if (file.type.startsWith('image/')) {
+            const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
+            return await imageCompression(file, options);
+          }
+          return file;
+        })
+      );
+      const { data } = await adminUploadMultiple(compressedFiles); 
       setFormData((p: any) => ({ ...p, images: [...(p.images || []), ...data.urls] })); 
       toast.success(`Đã tải ${data.urls.length} ảnh`); 
     } catch (er: any) { 
@@ -154,9 +170,9 @@ const ProductEdit: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-      <div className="w-12 h-12 border-4 border-mint border-t-transparent rounded-full animate-spin" />
-      <p className="text-sage/40 font-bold text-[11px] uppercase tracking-widest">Đang khởi tạo dữ liệu...</p>
+    <div className="p-20 text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto mb-4"></div>
+      <p className="text-gray-500 text-sm">Đang tải dữ liệu...</p>
     </div>
   );
 
@@ -168,74 +184,77 @@ const ProductEdit: React.FC = () => {
     { id: 'variants', label: 'Biến thể', icon: Layers },
   ];
 
-  const inputCls = "w-full px-6 py-4 rounded-2xl bg-white border border-black/5 focus:border-mint focus:bg-white outline-none font-bold text-sage text-sm transition-all placeholder:text-sage/20 shadow-sm";
-  const labelCls = "text-[11px] font-bold text-sage/40 uppercase tracking-widest mb-2.5 block px-1";
+  const inputCls = "w-full px-4 py-2 rounded-lg bg-white border border-gray-300 focus:border-sage focus:ring-1 focus:ring-sage outline-none text-sm transition-colors";
+  const labelCls = "block text-sm font-bold text-gray-700 mb-1";
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-32 animate-in fade-in duration-700">
+    <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-12">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => navigate('/admin/products')} 
-            className="p-4 rounded-2xl bg-white border border-black/5 text-sage/20 hover:text-sage hover:shadow-xl transition-all group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <div>
-            <div className="flex items-center gap-2 text-gold font-bold text-[10px] uppercase tracking-[0.2em] mb-1">
-              <Sparkles className="w-3.5 h-3.5" /> Luxury Catalog
-            </div>
-            <h1 className="text-4xl font-display italic text-sage tracking-tight">
-              {isEdit ? 'Biên tập sản phẩm' : 'Thêm sản phẩm mới'}
-            </h1>
-          </div>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/admin/products')} 
-            className="px-8 py-4 rounded-full border border-black/5 text-sage/40 text-[11px] font-bold uppercase tracking-widest hover:bg-white transition-all shadow-sm"
+            className="p-2 rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            Hủy thay đổi
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isEdit ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm mới'}
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/admin/products')} 
+            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors"
+          >
+            Hủy
           </button>
           <button 
             onClick={handleSave} 
             disabled={saving} 
-            className="px-10 py-4 rounded-full bg-ink text-white text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-mint transition-all shadow-2xl hover:-translate-y-1 disabled:opacity-50"
+            className="px-6 py-2 rounded-lg bg-sage text-white font-bold text-sm flex items-center gap-2 hover:bg-sage/90 transition-colors disabled:opacity-50"
           >
-            <Save className="w-4 h-4" /> {saving ? 'ĐANG LƯU...' : 'LƯU THAY ĐỔI'}
+            {saving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save size={16} />} 
+            {saving ? 'Đang lưu...' : 'Lưu lại'}
           </button>
         </div>
       </div>
 
       {/* Main Layout Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Sidebar Nav */}
-        <div className="lg:col-span-3 space-y-2">
+        <div className="md:col-span-1 space-y-1">
           {tabs.map(tab => (
             <button 
               key={tab.id} 
               onClick={() => setActiveTab(tab.id)} 
-              className={`w-full flex items-center gap-4 py-5 px-8 rounded-2xl font-bold text-[11px] uppercase tracking-[0.15em] transition-all border ${activeTab === tab.id ? 'bg-white text-mint border-black/5 shadow-xl' : 'text-sage/30 border-transparent hover:text-sage hover:bg-white/50'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${
+                activeTab === tab.id 
+                  ? 'bg-white text-sage border border-gray-200 shadow-sm' 
+                  : 'text-gray-600 hover:bg-gray-100 border border-transparent'
+              }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-mint' : 'text-sage/20'}`} /> {tab.label}
+              <tab.icon size={18} className={activeTab === tab.id ? 'text-sage' : 'text-gray-400'} /> 
+              {tab.label}
             </button>
           ))}
         </div>
 
         {/* Content Area */}
-        <div className="lg:col-span-9">
-          <div className="bg-white rounded-[2.5rem] border border-black/5 p-10 lg:p-16 shadow-sm min-h-[600px] animate-in fade-in zoom-in-95 duration-500">
+        <div className="md:col-span-3">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[500px]">
             {activeTab === 'basic' && (
-              <div className="space-y-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-full">
                     <label className={labelCls}>Tên sản phẩm *</label>
-                    <input name="name" value={formData.name} onChange={handleInputChange} className={`${inputCls} text-lg`} placeholder="Ví dụ: Nước giặt Thảo Mộc Organic" />
+                    <input name="name" value={formData.name} onChange={handleInputChange} className={inputCls} placeholder="Ví dụ: Nước giặt Thảo Mộc Organic" />
                   </div>
                   <div>
                     <label className={labelCls}>Mã SKU</label>
-                    <input name="sku" value={formData.sku} onChange={handleInputChange} className={`${inputCls} font-mono uppercase tracking-widest`} placeholder="BSP-001" />
+                    <input name="sku" value={formData.sku} onChange={handleInputChange} className={`${inputCls} font-mono`} placeholder="BSP-001" />
                   </div>
                   <div>
                     <label className={labelCls}>Danh mục</label>
@@ -246,11 +265,11 @@ const ProductEdit: React.FC = () => {
                   </div>
                   <div>
                     <label className={labelCls}>Giá bán (₫) *</label>
-                    <input type="number" name="price" value={formData.price} onChange={handleInputChange} className={`${inputCls} text-lg`} />
+                    <input type="number" name="price" value={formData.price} onChange={handleInputChange} className={inputCls} />
                   </div>
                   <div>
                     <label className={labelCls}>Giá khuyến mãi (₫)</label>
-                    <input type="number" name="salePrice" value={formData.salePrice} onChange={handleInputChange} className={`${inputCls} text-lg text-mint`} />
+                    <input type="number" name="salePrice" value={formData.salePrice} onChange={handleInputChange} className={inputCls} />
                   </div>
                   <div>
                     <label className={labelCls}>Tồn kho</label>
@@ -258,30 +277,27 @@ const ProductEdit: React.FC = () => {
                   </div>
                   <div>
                     <label className={labelCls}>Nhãn (Badge)</label>
-                    <input name="badge" value={formData.badge} onChange={handleInputChange} className={inputCls} placeholder="New, Best Seller, Hot..." />
+                    <input name="badge" value={formData.badge} onChange={handleInputChange} className={inputCls} placeholder="New, Hot..." />
                   </div>
                 </div>
 
-                <div className="pt-10 border-t border-black/5">
+                <div className="pt-6 border-t border-gray-200">
                    <label className={labelCls}>Cấu hình đặc biệt</label>
-                   <div className="flex flex-wrap gap-10">
+                   <div className="flex flex-wrap gap-6 mt-3">
                       {[
                         { name: 'isPreorder', label: 'Cho phép Đặt trước (Pre-order)', icon: Clock },
                         { name: 'isNew', label: 'Đánh dấu Sản phẩm mới', icon: Sparkles }
                       ].map(cb => (
-                        <label key={cb.name} className="flex items-center gap-4 cursor-pointer group">
-                          <div className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all ${formData[cb.name] ? 'bg-mint border-mint shadow-lg shadow-mint/20' : 'bg-gray-50 border-black/5 group-hover:border-mint/30'}`}>
-                            {formData[cb.name] && <Check className="w-4 h-4 text-white" />}
-                          </div>
-                          <input type="checkbox" name={cb.name} checked={formData[cb.name]} onChange={handleInputChange} className="hidden" />
-                          <span className={`font-bold text-[11px] uppercase tracking-widest transition-colors ${formData[cb.name] ? 'text-sage' : 'text-sage/30 group-hover:text-sage/60'}`}>{cb.label}</span>
+                        <label key={cb.name} className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name={cb.name} checked={formData[cb.name]} onChange={handleInputChange} className="rounded text-sage focus:ring-sage" />
+                          <span className="text-sm font-medium text-gray-700 flex items-center gap-1.5"><cb.icon size={14} className="text-gray-400" /> {cb.label}</span>
                         </label>
                       ))}
                    </div>
                 </div>
 
                 {formData.isPreorder && (
-                  <div className="animate-in slide-in-from-top-4 duration-500">
+                  <div className="pt-4">
                     <label className={labelCls}>Thời gian chuẩn bị dự kiến (ngày)</label>
                     <input name="preparationTime" value={formData.preparationTime} onChange={handleInputChange} className={inputCls} placeholder="VD: 2-3 hoặc 7-10" />
                   </div>
@@ -290,14 +306,14 @@ const ProductEdit: React.FC = () => {
             )}
 
             {activeTab === 'content' && (
-              <div className="space-y-10 animate-in fade-in duration-500">
+              <div className="space-y-6">
                 <div>
-                  <label className={labelCls}>Mô tả ngắn gọn (Hiển thị đầu trang)</label>
-                  <textarea name="shortDescription" value={formData.shortDescription} onChange={handleInputChange} rows={4} className={`${inputCls} resize-none font-medium leading-relaxed`} placeholder="Tóm tắt những điểm nổi bật nhất của sản phẩm..." />
+                  <label className={labelCls}>Mô tả ngắn gọn</label>
+                  <textarea name="shortDescription" value={formData.shortDescription} onChange={handleInputChange} rows={3} className={`${inputCls} resize-none`} placeholder="Tóm tắt ngắn gọn về sản phẩm..." />
                 </div>
                 <div>
-                  <label className={labelCls}>Thông tin chi tiết (Rich Content)</label>
-                  <div className="rounded-[2rem] overflow-hidden border border-black/5 bg-gray-50 p-2">
+                  <label className={labelCls}>Thông tin chi tiết</label>
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
                     <ReactQuill 
                       theme="snow" 
                       value={formData.description} 
@@ -319,121 +335,198 @@ const ProductEdit: React.FC = () => {
             )}
 
             {activeTab === 'media' && (
-              <div className="space-y-12 animate-in fade-in duration-500">
+              <div className="space-y-8">
                 <div>
-                  <label className={labelCls}>Ảnh đại diện sản phẩm</label>
-                  <div className="max-w-md">
-                    <div onClick={() => document.getElementById('thumb-up')?.click()} className="aspect-[4/3] rounded-[2.5rem] bg-gray-50 border-2 border-dashed border-black/5 relative overflow-hidden group cursor-pointer hover:border-mint transition-all shadow-inner">
+                  <label className={labelCls}>Ảnh đại diện chính</label>
+                  <div className="max-w-xs mt-2">
+                    <div onClick={() => document.getElementById('thumb-up')?.click()} className="aspect-square rounded-lg bg-gray-100 border-2 border-dashed border-gray-300 relative overflow-hidden cursor-pointer hover:border-sage transition-colors flex items-center justify-center">
                       {formData.thumbnail ? 
-                        <img src={formData.thumbnail} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" /> :
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-sage/10 group-hover:text-mint transition-all">
-                          <ImageIcon className="w-12 h-12 mb-3" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Tải ảnh bìa chính</span>
+                        <img src={formData.thumbnail} alt="" className="w-full h-full object-cover" /> :
+                        <div className="flex flex-col items-center text-gray-400">
+                          <ImageIcon size={32} className="mb-2" />
+                          <span className="text-xs font-bold uppercase tracking-wider">Tải ảnh</span>
                         </div>
                       }
-                      {uploading && <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center"><div className="w-10 h-10 border-4 border-mint border-t-transparent rounded-full animate-spin" /></div>}
+                      {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center"><div className="w-8 h-8 border-2 border-sage border-t-transparent rounded-full animate-spin" /></div>}
                     </div>
                     <input id="thumb-up" type="file" className="hidden" accept="image/*" onChange={handleThumbnailUpload} />
                   </div>
                 </div>
 
                 <div>
-                  <label className={labelCls}>Thư viện ảnh sản phẩm</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className={labelCls}>Thư viện ảnh</label>
+                    <button 
+                      type="button"
+                      onClick={() => document.getElementById('gallery-up')?.click()}
+                      className="text-xs font-bold text-sage hover:underline flex items-center gap-1"
+                    >
+                      <Plus size={14} /> Thêm nhiều ảnh
+                    </button>
+                    <input 
+                      id="gallery-up" 
+                      type="file" 
+                      multiple 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={(e) => e.target.files && onDrop(Array.from(e.target.files))} 
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-2">
                     {formData.images.map((url: string, idx: number) => (
-                      <div key={idx} className="aspect-square rounded-[1.5rem] bg-gray-50 border border-black/5 relative group overflow-hidden shadow-sm">
-                        <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <div key={idx} className="aspect-square rounded-lg bg-gray-100 border border-gray-200 relative group overflow-hidden">
+                        <img src={url} alt="" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <button onClick={() => setFormData((p: any) => ({ ...p, images: p.images.filter((_: any, i: number) => i !== idx) }))} className="p-3 bg-red-500 text-white rounded-2xl shadow-xl hover:bg-red-600 transition-all">
-                            <Trash2 className="w-5 h-5" />
+                          <button onClick={() => setFormData((p: any) => ({ ...p, images: p.images.filter((_: any, i: number) => i !== idx) }))} className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </div>
                     ))}
-                    <div {...getRootProps()} className={`aspect-square rounded-[1.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${isDragActive ? 'border-mint bg-mint/5 text-mint' : 'border-black/5 bg-gray-50 text-sage/10 hover:border-mint hover:text-mint'}`}>
+                    <div {...getRootProps()} className={`aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${isDragActive ? 'border-sage bg-sage/5 text-sage' : 'border-gray-300 bg-gray-50 text-gray-400 hover:border-sage hover:text-sage'}`}>
                       <input {...getInputProps()} />
-                      <Plus className="w-8 h-8" />
-                      <span className="font-black text-[9px] uppercase tracking-widest text-center px-4">{isDragActive ? 'Thả ảnh' : 'Kéo thả ảnh'}</span>
+                      {uploading ? (
+                        <div className="w-8 h-8 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Plus size={24} />
+                          <span className="text-xs font-bold text-center px-2">{isDragActive ? 'Thả ảnh' : 'Kéo thả'}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-black/5">
-                  <label className={labelCls}>Video Review URL</label>
-                  <div className="relative group">
-                    <Video className="absolute left-5 top-1/2 -translate-y-1/2 text-sage/10 w-5 h-5 group-focus-within:text-mint transition-colors" />
-                    <input name="videoUrl" value={formData.videoUrl} onChange={handleInputChange} className={`${inputCls} pl-14`} placeholder="Link YouTube, TikTok hoặc MP4..." />
+                <div className="pt-6 border-t border-gray-200">
+                  <label className={labelCls}>Video Sản phẩm</label>
+                  <div className="mt-2 space-y-4">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="flex-1">
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Link Video (YouTube, TikTok...)</label>
+                        <div className="relative">
+                          <Video className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                          <input name="videoUrl" value={formData.videoUrl} onChange={handleInputChange} className={`${inputCls} pl-10`} placeholder="https://..." />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Hoặc tải video lên (MP4, Max 50MB)</label>
+                        <button 
+                          type="button"
+                          disabled={uploading}
+                          onClick={() => document.getElementById('video-up')?.click()}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed border-gray-300 hover:border-sage hover:bg-sage/5 transition-all text-sm font-bold text-gray-600"
+                        >
+                          {uploading ? <div className="w-4 h-4 border-2 border-sage border-t-transparent rounded-full animate-spin" /> : <Plus size={16} />}
+                          Tải video lên
+                        </button>
+                        <input 
+                          id="video-up" 
+                          type="file" 
+                          className="hidden" 
+                          accept="video/mp4,video/quicktime" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]; if (!file) return;
+                            setUploading(true);
+                            try {
+                              const { data } = await adminUploadSingle(file);
+                              setFormData((p: any) => ({ ...p, videoUrl: data.url }));
+                              toast.success('Tải video thành công');
+                            } catch (err: any) {
+                              toast.error(err.response?.data?.message || 'Lỗi tải video');
+                            } finally {
+                              setUploading(false);
+                            }
+                          }} 
+                        />
+                      </div>
+                    </div>
+
+                    {formData.videoUrl && (
+                      <div className="rounded-xl overflow-hidden border border-gray-200 bg-black aspect-video max-w-md">
+                        {formData.videoUrl.startsWith('/uploads/') ? (
+                          <video src={formData.videoUrl} controls className="w-full h-full" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white text-xs text-center p-4">
+                            <Video size={32} className="mb-2 opacity-50 block mx-auto" />
+                            <p>Video từ link ngoài: <br/>{formData.videoUrl}</p>
+                          </div>
+                        )}
+                        <button 
+                          onClick={() => setFormData((p: any) => ({ ...p, videoUrl: '' }))}
+                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'seo' && (
-              <div className="space-y-10 animate-in fade-in duration-500 max-w-3xl">
+              <div className="space-y-6 max-w-2xl">
                 <div>
-                   <label className={labelCls}>Meta Title (SEO)</label>
-                   <input name="metaTitle" value={formData.metaTitle} onChange={handleInputChange} className={inputCls} placeholder="Tiêu đề hiển thị trên kết quả tìm kiếm..." />
-                   <p className="text-[10px] text-sage/30 mt-2 font-bold px-1">Tối ưu từ 50-60 ký tự</p>
+                   <label className={labelCls}>Meta Title</label>
+                   <input name="metaTitle" value={formData.metaTitle} onChange={handleInputChange} className={inputCls} placeholder="Tiêu đề SEO..." />
+                   <p className="text-xs text-gray-500 mt-1">Tối ưu từ 50-60 ký tự.</p>
                 </div>
                 <div>
-                   <label className={labelCls}>Meta Description (SEO)</label>
-                   <textarea name="metaDescription" value={formData.metaDescription} onChange={handleInputChange} rows={4} className={`${inputCls} resize-none`} placeholder="Mô tả thu hút người dùng click từ Google..." />
-                   <p className="text-[10px] text-sage/30 mt-2 font-bold px-1">Tối ưu từ 120-160 ký tự</p>
+                   <label className={labelCls}>Meta Description</label>
+                   <textarea name="metaDescription" value={formData.metaDescription} onChange={handleInputChange} rows={4} className={`${inputCls} resize-none`} placeholder="Mô tả SEO..." />
+                   <p className="text-xs text-gray-500 mt-1">Tối ưu từ 120-160 ký tự.</p>
                 </div>
                 <div>
-                   <label className={labelCls}>Tags & Keywords (Cách nhau bởi dấu phẩy)</label>
-                   <input name="tags" value={formData.tags} onChange={handleInputChange} className={inputCls} placeholder="thao moc, organic, luxury, serum..." />
+                   <label className={labelCls}>Tags (Cách nhau bởi dấu phẩy)</label>
+                   <input name="tags" value={formData.tags} onChange={handleInputChange} className={inputCls} placeholder="tag1, tag2..." />
                 </div>
 
-                <div className="bg-gray-50 p-10 rounded-[2.5rem] border border-black/5 shadow-inner">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center shadow-sm"><Globe className="w-4 h-4 text-mint" /></div>
-                    <p className="text-[10px] font-black text-sage/40 uppercase tracking-[0.2em]">Google Preview</p>
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Globe size={16} className="text-gray-400" />
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Xem trước Google</p>
                   </div>
-                  <h4 className="text-xl text-[#1a0dab] font-medium hover:underline cursor-pointer mb-1">{formData.metaTitle || formData.name || 'Tiêu đề sản phẩm'}</h4>
-                  <p className="text-[#006621] text-sm mb-2 italic opacity-80">herbspalab.com › products › {formData.sku || 'san-pham-herbs'}</p>
-                  <p className="text-sage/60 text-sm leading-relaxed line-clamp-2">
-                    {formData.metaDescription || formData.shortDescription || 'Chưa có mô tả SEO. Hãy nhập mô tả để cải thiện thứ hạng tìm kiếm của sản phẩm trên Google...'}
+                  <h4 className="text-lg text-blue-700 font-medium hover:underline cursor-pointer mb-1 truncate">{formData.metaTitle || formData.name || 'Tiêu đề sản phẩm'}</h4>
+                  <p className="text-green-700 text-sm mb-1 truncate">herbspalab.com › products › {formData.sku || 'san-pham'}</p>
+                  <p className="text-gray-600 text-sm line-clamp-2">
+                    {formData.metaDescription || formData.shortDescription || 'Mô tả SEO sẽ xuất hiện ở đây...'}
                   </p>
                 </div>
               </div>
             )}
 
             {activeTab === 'variants' && (
-              <div className="space-y-10 animate-in fade-in duration-500">
-                <div className="flex items-center justify-between pb-6 border-b border-black/5">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200">
                   <div>
-                    <h3 className="text-2xl font-display italic text-sage">Ma trận biến thể</h3>
-                    <p className="text-[11px] text-sage/30 font-bold uppercase tracking-widest mt-1">Cấu hình kích thước, mùi hương, màu sắc...</p>
+                    <h3 className="text-lg font-bold text-gray-900">Biến thể Sản phẩm</h3>
+                    <p className="text-sm text-gray-500">Quản lý kích thước, mùi hương...</p>
                   </div>
-                  <button onClick={generateVariants} className="px-8 py-4 bg-ink text-white rounded-full font-bold text-[11px] uppercase tracking-widest hover:bg-mint transition-all shadow-xl flex items-center gap-3">
-                    <Layers className="w-4 h-4" /> Khởi tạo ma trận
+                  <button onClick={generateVariants} className="px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-sm hover:bg-gray-800 transition-colors flex items-center gap-2">
+                    <Layers size={16} /> Tạo biến thể
                   </button>
                 </div>
 
-                <div className="bg-gray-50 p-8 rounded-[2rem] border border-black/5 space-y-8">
+                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 space-y-6">
                   {attributes.map((attr: any) => (
-                    <div key={attr.id} className="space-y-4">
-                      <label className="flex items-center gap-3 cursor-pointer group w-fit">
-                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${selectedAttrs.includes(attr.id) ? 'bg-sage border-sage' : 'bg-white border-black/10 group-hover:border-sage/30'}`}>
-                          {selectedAttrs.includes(attr.id) && <Check className="w-3.5 h-3.5 text-white" />}
-                        </div>
+                    <div key={attr.id} className="space-y-3">
+                      <label className="flex items-center gap-2 cursor-pointer w-fit">
                         <input type="checkbox" checked={selectedAttrs.includes(attr.id)} onChange={() => {
                           setSelectedAttrs(p => p.includes(attr.id) ? p.filter(a => a !== attr.id) : [...p, attr.id]);
                           if (selectedAttrs.includes(attr.id)) setSelectedValues(p => { const n = { ...p }; delete n[attr.id]; return n; });
-                        }} className="hidden" />
-                        <span className="font-black text-sage text-[11px] uppercase tracking-widest">{attr.name}</span>
+                        }} className="rounded text-sage focus:ring-sage" />
+                        <span className="font-bold text-gray-900 text-sm">{attr.name}</span>
                       </label>
                       
                       {selectedAttrs.includes(attr.id) && (
-                        <div className="flex flex-wrap gap-3 ml-9 animate-in slide-in-from-left-4 duration-500">
+                        <div className="flex flex-wrap gap-2 pl-6">
                           {attr.values?.map((v: any) => {
                             const sel = (selectedValues[attr.id] || []).includes(v.id);
                             return (
                               <button key={v.id} onClick={() => setSelectedValues(p => {
                                 const cur = p[attr.id] || [];
                                 return { ...p, [attr.id]: sel ? cur.filter(x => x !== v.id) : [...cur, v.id] };
-                              })} className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${sel ? 'bg-mint text-white border-mint shadow-md' : 'bg-white text-sage/30 border-black/5 hover:border-mint/30 hover:text-sage'}`}>
+                              })} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${sel ? 'bg-sage text-white border-sage' : 'bg-white text-gray-600 border-gray-300 hover:border-sage'}`}>
                                 {v.value}
                               </button>
                             );
@@ -443,42 +536,42 @@ const ProductEdit: React.FC = () => {
                     </div>
                   ))}
                   {attributes.length === 0 && (
-                    <div className="py-10 text-center">
-                      <p className="text-sage/30 text-sm font-bold uppercase tracking-widest">Chưa có thuộc tính hệ thống</p>
-                      <button onClick={() => navigate('/admin/attributes')} className="mt-4 text-mint font-bold text-[10px] uppercase tracking-widest underline decoration-2 underline-offset-4">Tạo thuộc tính ngay</button>
+                    <div className="text-center py-4">
+                      <p className="text-gray-500 text-sm">Chưa có thuộc tính nào.</p>
+                      <button onClick={() => navigate('/admin/attributes')} className="mt-2 text-sage font-bold text-sm underline">Đến trang Quản lý thuộc tính</button>
                     </div>
                   )}
                 </div>
 
                 {formData.variants.length > 0 ? (
-                  <div className="rounded-[2rem] border border-black/5 overflow-hidden shadow-sm bg-white">
+                  <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
+                      <table className="w-full text-left">
                         <thead>
-                          <tr className="bg-gray-50 text-[10px] font-black text-sage/30 uppercase tracking-[0.2em] border-b border-black/5">
-                            <th className="px-8 py-5">Biến thể</th>
-                            <th className="px-8 py-5">SKU</th>
-                            <th className="px-8 py-5 text-center">Giá (₫)</th>
-                            <th className="px-8 py-5 text-center">Tồn kho</th>
-                            <th className="px-8 py-5 text-right"></th>
+                          <tr className="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3">Phân loại</th>
+                            <th className="px-4 py-3">SKU</th>
+                            <th className="px-4 py-3 text-center">Giá (₫)</th>
+                            <th className="px-4 py-3 text-center">Tồn kho</th>
+                            <th className="px-4 py-3 text-right"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-black/5">
+                        <tbody className="divide-y divide-gray-100">
                           {formData.variants.map((v: any, idx: number) => (
-                            <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                              <td className="px-8 py-5 font-bold text-sage text-xs">{v.label}</td>
-                              <td className="px-8 py-5">
-                                <input value={v.sku} onChange={e => { const vv = [...formData.variants]; vv[idx] = { ...vv[idx], sku: e.target.value }; setFormData((p: any) => ({ ...p, variants: vv })); }} className="px-4 py-2 rounded-lg bg-gray-50 border border-black/5 text-[11px] w-full font-mono font-bold uppercase" />
+                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-3 text-sm font-bold text-gray-900">{v.label}</td>
+                              <td className="px-4 py-3">
+                                <input value={v.sku} onChange={e => { const vv = [...formData.variants]; vv[idx] = { ...vv[idx], sku: e.target.value }; setFormData((p: any) => ({ ...p, variants: vv })); }} className="w-full px-2 py-1 rounded bg-white border border-gray-300 text-xs font-mono" />
                               </td>
-                              <td className="px-8 py-5">
-                                <input type="number" value={v.price} onChange={e => { const vv = [...formData.variants]; vv[idx] = { ...vv[idx], price: Number(e.target.value) }; setFormData((p: any) => ({ ...p, variants: vv })); }} className="px-4 py-2 rounded-lg bg-gray-50 border border-black/5 text-[11px] w-32 text-center mx-auto block font-bold" />
+                              <td className="px-4 py-3">
+                                <input type="number" value={v.price} onChange={e => { const vv = [...formData.variants]; vv[idx] = { ...vv[idx], price: Number(e.target.value) }; setFormData((p: any) => ({ ...p, variants: vv })); }} className="w-24 px-2 py-1 mx-auto block rounded bg-white border border-gray-300 text-xs text-center" />
                               </td>
-                              <td className="px-8 py-5">
-                                <input type="number" value={v.stock} onChange={e => { const vv = [...formData.variants]; vv[idx] = { ...vv[idx], stock: Number(e.target.value) }; setFormData((p: any) => ({ ...p, variants: vv })); }} className="px-4 py-2 rounded-lg bg-gray-50 border border-black/5 text-[11px] w-24 text-center mx-auto block font-bold" />
+                              <td className="px-4 py-3">
+                                <input type="number" value={v.stock} onChange={e => { const vv = [...formData.variants]; vv[idx] = { ...vv[idx], stock: Number(e.target.value) }; setFormData((p: any) => ({ ...p, variants: vv })); }} className="w-20 px-2 py-1 mx-auto block rounded bg-white border border-gray-300 text-xs text-center" />
                               </td>
-                              <td className="px-8 py-5 text-right">
-                                <button onClick={() => setFormData((p: any) => ({ ...p, variants: p.variants.filter((_: any, i: number) => i !== idx) }))} className="p-2 text-sage/20 hover:text-red-500 transition-colors">
-                                  <Trash2 className="w-4 h-4" />
+                              <td className="px-4 py-3 text-right">
+                                <button onClick={() => setFormData((p: any) => ({ ...p, variants: p.variants.filter((_: any, i: number) => i !== idx) }))} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors">
+                                  <Trash2 size={16} />
                                 </button>
                               </td>
                             </tr>
@@ -488,9 +581,9 @@ const ProductEdit: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 p-20 rounded-[2.5rem] border-2 border-dashed border-black/5 text-center">
-                    <Database className="w-12 h-12 text-sage/10 mx-auto mb-4" />
-                    <p className="text-sage/30 font-black text-[11px] uppercase tracking-[0.2em]">Chọn thuộc tính & nhấn "Khởi tạo ma trận" để bắt đầu</p>
+                  <div className="bg-gray-50 py-12 rounded-xl border-2 border-dashed border-gray-200 text-center">
+                    <Database size={32} className="text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">Chọn thuộc tính và tạo biến thể để thiết lập giá và tồn kho riêng biệt.</p>
                   </div>
                 )}
               </div>

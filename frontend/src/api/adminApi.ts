@@ -68,6 +68,11 @@ export const adminCreateBlog = (data: any) => API.post('/blogs', data);
 export const adminUpdateBlog = (id: string, data: any) => API.put(`/blogs/${id}`, data);
 export const adminDeleteBlog = (id: string) => API.delete(`/blogs/${id}`);
 
+// Comments (Admin)
+export const adminFetchComments = () => API.get('/admin/comments').then(res => res.data);
+export const adminUpdateCommentStatus = (id: string, status: string) => API.put(`/admin/comments/${id}`, { status });
+export const adminDeleteComment = (id: string) => API.delete(`/admin/comments/${id}`);
+
 // Upload (Admin)
 export const adminUploadSingle = (file: File) => {
   const form = new FormData();

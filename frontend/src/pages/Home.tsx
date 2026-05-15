@@ -94,6 +94,7 @@ interface FeaturedProduct {
   id: string;
   name: string;
   price: number;
+  thumbnail?: string;
   images: { url: string }[];
   badge?: string | null;
   category?: { name: string } | null;
@@ -103,6 +104,7 @@ const Home = () => {
   const [selectedProduct, setSelectedProduct] = useState<FeaturedProduct | null>(null);
   const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState('');
   const { addToCart } = useCart();
   
   // Slider Logic
@@ -156,6 +158,7 @@ const Home = () => {
       } catch (err) {
         console.error('Failed to load featured products', err);
         setFeaturedProducts([]);
+        setProductsError('Không thể tải sản phẩm nổi bật.');
       } finally {
         setProductsLoading(false);
       }
@@ -433,13 +436,18 @@ const Home = () => {
           <div className="curated-grid">
             {productsLoading ? (
               <div className="loader-container"><div className="loader"></div></div>
+            ) : productsError ? (
+              <div className="loader-container" style={{ flexDirection: 'column', gap: '1rem', gridColumn: '1 / -1' }}>
+                <p style={{ color: 'var(--secondary)' }}>{productsError}</p>
+                <button className="btn-outline" onClick={() => window.location.reload()}>Thử lại</button>
+              </div>
             ) : (
               featuredProducts.map((product, idx) => (
                 <Reveal key={product.id} delay={idx * 0.15}>
                   <div className="luxury-card interactive">
                     <div className="luxury-card-img">
                       <img 
-                        src={product.images?.[0]?.url || 'https://via.placeholder.com/400x500'} 
+                        src={product.thumbnail || product.images?.[0]?.url || 'https://via.placeholder.com/400x500'} 
                         alt={product.name} 
                         width="400" 
                         height="500" 
@@ -454,7 +462,7 @@ const Home = () => {
                             id: product.id,
                             name: product.name,
                             price: product.price,
-                            image: product.images?.[0]?.url || '',
+                            image: product.thumbnail || product.images?.[0]?.url || '',
                             category: product.category?.name || 'Thảo mộc'
                           })}>
                             <ShoppingCart size={18} />

@@ -132,10 +132,21 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-weight: 700;
   color: var(--primary);
   line-height: 1.2;
+}
+
+/* Luxury Font for Home & Specific Accents */
+.home-wrapper h1,
+.home-wrapper h2,
+.home-wrapper h3,
+.home-wrapper h4,
+.home-wrapper h5,
+.home-wrapper h6,
+.font-display {
+  font-family: var(--font-display);
 }
 
 a {

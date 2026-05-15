@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 interface Product {
   id: string;
@@ -31,11 +32,13 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const addToWishlist = (product: Product) => {
     if (!isInWishlist(product.id)) {
       setWishlist([...wishlist, product]);
+      toast.success('Đã thêm vào danh sách yêu thích!');
     }
   };
 
   const removeFromWishlist = (productId: string) => {
     setWishlist(wishlist.filter(item => item.id !== productId));
+    toast('Đã xóa khỏi danh sách yêu thích');
   };
 
   const isInWishlist = (productId: string) => {

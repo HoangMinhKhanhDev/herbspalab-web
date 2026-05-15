@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { getStats, getTrafficReport, getCustomerReport } from '../controllers/adminController.js';
-import { getAdminBlogs, getBlogById } from '../controllers/blogController.js';
+import { 
+  getAdminBlogs, 
+  getBlogById, 
+  getAdminComments, 
+  updateCommentStatus, 
+  deleteComment 
+} from '../controllers/blogController.js';
 import { getSettings, updateSettings } from '../controllers/settingsController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 import {
@@ -46,6 +52,11 @@ router.delete('/attributes/values/:id', protect, admin, deleteAttributeValue);
 // Blogs (Admin)
 router.get('/blogs', protect, admin, getAdminBlogs);
 router.get('/blogs/:id', protect, admin, getBlogById);
+
+// Comments (Admin)
+router.get('/comments', protect, admin, getAdminComments);
+router.put('/comments/:id', protect, admin, updateCommentStatus);
+router.delete('/comments/:id', protect, admin, deleteComment);
 
 // Settings
 router.route('/settings')

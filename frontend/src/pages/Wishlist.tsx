@@ -2,9 +2,11 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 
 const Wishlist = () => {
   const { wishlist, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
 
   return (
     <motion.div 
@@ -49,7 +51,7 @@ const Wishlist = () => {
                 <h3>{p.name}</h3>
                 <div className="card-footer">
                   <span className="price">{p.price.toLocaleString()}₫</span>
-                  <button className="cart-icon-btn"><ShoppingBag size={18} /></button>
+                  <button className="cart-icon-btn" onClick={() => addToCart({ id: p.id, name: p.name, price: Number(p.price), image: p.image })}><ShoppingBag size={18} /></button>
                 </div>
               </div>
             </motion.div>

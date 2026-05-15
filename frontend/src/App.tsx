@@ -1,43 +1,51 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { Component } from 'react';
+import { Component, lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
 import './App.css';
 
-// Components
+// Components (eager - always needed)
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { CartSidebar } from './components/CartSidebar';
-
-// Pages
-import Home from './pages/Home';
-import About from './pages/About';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import News from './pages/News';
-import SkinQuiz from './pages/SkinQuiz';
-import Wishlist from './pages/Wishlist';
-import Checkout from './pages/Checkout';
-import Profile from './pages/Profile';
-import AdminPanel from './pages/AdminPanel';
-import { useAuth } from './context/AuthContext';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
 import CustomCursor from './components/common/CustomCursor';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import ProductList from './pages/admin/ProductList';
-import ProductEdit from './pages/admin/ProductEdit';
-import OrderList from './pages/admin/OrderList';
-import CategoryManager from './pages/admin/CategoryManager';
-import AttributeManager from './pages/admin/AttributeManager';
-import ConsultationManager from './pages/admin/ConsultationManager';
-import NewsManager from './pages/admin/NewsManager';
-import NewsEdit from './pages/admin/NewsEdit';
-import Settings from './pages/admin/Settings';
-import UserManager from './pages/admin/UserManager';
-import OrderDetail from './pages/admin/OrderDetail';
-import ReportsPage from './pages/admin/ReportsPage';
+
+// Pages (lazy loaded for code splitting)
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./pages/About'));
+const Products = lazy(() => import('./pages/Products'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const News = lazy(() => import('./pages/News'));
+const NewsDetail = lazy(() => import('./pages/NewsDetail'));
+const SkinQuiz = lazy(() => import('./pages/SkinQuiz'));
+const Wishlist = lazy(() => import('./pages/Wishlist'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const Profile = lazy(() => import('./pages/Profile'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const ProductList = lazy(() => import('./pages/admin/ProductList'));
+const ProductEdit = lazy(() => import('./pages/admin/ProductEdit'));
+const OrderList = lazy(() => import('./pages/admin/OrderList'));
+const OrderDetail = lazy(() => import('./pages/admin/OrderDetail'));
+const CategoryManager = lazy(() => import('./pages/admin/CategoryManager'));
+const AttributeManager = lazy(() => import('./pages/admin/AttributeManager'));
+const ConsultationManager = lazy(() => import('./pages/admin/ConsultationManager'));
+const NewsManager = lazy(() => import('./pages/admin/NewsManager'));
+const NewsEdit = lazy(() => import('./pages/admin/NewsEdit'));
+const Settings = lazy(() => import('./pages/admin/Settings'));
+const UserManager = lazy(() => import('./pages/admin/UserManager'));
+const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
+const AdminComments = lazy(() => import('./pages/admin/AdminComments'));
+
+import ScrollToTop from './components/common/ScrollToTop';
+import { useAuth } from './context/AuthContext';
+
+const PageLoader = () => (
+  <div className="loader-container"><div className="loader"></div></div>
+);
 
 import { Toaster } from 'react-hot-toast';
 
@@ -82,9 +90,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 // ─── App ─────────────────────────────────────────────────────────────────────
 function App() {
   const location = useLocation();
-  const { isAdmin, isAuthenticated } = useAuth();
+  const { isAdmin, isAuthenticated, isLoading } = useAuth();
   const isAtAdmin = location.pathname.startsWith('/admin');
   const isAuthPage = ['/login', '/register', '/forgot-password'].includes(location.pathname);
+
+  if (isLoading) return <PageLoader />;
 
   if (isAuthPage) {
     return (
@@ -106,14 +116,17 @@ function App() {
           <div style={{ height: 'var(--nav-height, 130px)', width: '100%', flexShrink: 0 }} />
           <div style={{ flex: '1 0 auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '6rem 2rem' }}>
             <ErrorBoundary>
-              <Routes location={location} key={location.pathname}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-              </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes location={location} key={location.pathname}>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                </Routes>
+              </Suspense>
             </ErrorBoundary>
           </div>
           <Footer />
+          <ScrollToTop />
           <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { background: '#1a1a1a', color: '#fff', borderRadius: '1rem', fontSize: '14px' } }} />
         </div>
       </div>
@@ -127,37 +140,42 @@ function App() {
       <CartSidebar />
       <main className="main-content">
         <ErrorBoundary>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/news" element={<News />} />
-              <Route path="/skin-quiz" element={<SkinQuiz />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
-              <Route path="/admin" element={isAdmin ? <AdminPanel /> : <Navigate to="/login" />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="products" element={<ProductList />} />
-                <Route path="products/:id" element={<ProductEdit />} />
-                <Route path="orders" element={<OrderList />} />
-                <Route path="orders/:id" element={<OrderDetail />} />
-                <Route path="categories" element={<CategoryManager />} />
-                <Route path="attributes" element={<AttributeManager />} />
-                <Route path="consultations" element={<ConsultationManager />} />
-                <Route path="news" element={<NewsManager />} />
-                <Route path="news/:id" element={<NewsEdit />} />
-                <Route path="reports" element={<ReportsPage />} />
-                <Route path="users" element={<UserManager />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
-            </Routes>
-          </AnimatePresence>
+          <Suspense fallback={<PageLoader />}>
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/news" element={<News />} />
+                <Route path="/news/:id" element={<NewsDetail />} />
+                <Route path="/skin-quiz" element={<SkinQuiz />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
+                <Route path="/admin" element={isAdmin ? <AdminPanel /> : <Navigate to="/login" />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="products" element={<ProductList />} />
+                  <Route path="products/:id" element={<ProductEdit />} />
+                  <Route path="orders" element={<OrderList />} />
+                  <Route path="orders/:id" element={<OrderDetail />} />
+                  <Route path="categories" element={<CategoryManager />} />
+                  <Route path="attributes" element={<AttributeManager />} />
+                  <Route path="consultations" element={<ConsultationManager />} />
+                  <Route path="news" element={<NewsManager />} />
+                  <Route path="news/:id" element={<NewsEdit />} />
+                  <Route path="comments" element={<AdminComments />} />
+                  <Route path="reports" element={<ReportsPage />} />
+                  <Route path="users" element={<UserManager />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
+              </Routes>
+            </AnimatePresence>
+          </Suspense>
         </ErrorBoundary>
       </main>
       {!isAtAdmin && <Footer />}
+      <ScrollToTop />
       <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { background: '#1a1a1a', color: '#fff', borderRadius: '1rem', fontSize: '14px' } }} />
     </div>
   );

@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Heart, X, ChevronDown, SlidersHorizontal, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import SEO from '../components/common/SEO';
 import LazyImage from '../components/common/LazyImage';
+import Breadcrumb from '../components/common/Breadcrumb';
 
 import { fetchProducts } from '../api/productApi';
 import { fetchCategories } from '../api/categoryApi';
@@ -13,6 +15,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  thumbnail?: string;
   images: { url: string }[];
   categoryId?: string;
   category?: { name: string };
@@ -26,9 +29,21 @@ const Products = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeCategoryId, setActiveCategoryId] = useState('all');
   const [activeSkinType, setActiveSkinType] = useState('Tất cả');
-  const [priceRange, setPriceRange] = useState(3000000);
+  const [priceRange, setPriceRange] = useState(10000000); // Increased default to 10M
+  const [maxPriceLimit, setMaxPriceLimit] = useState(10000000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('default');
+  const [sortOpen, setSortOpen] = useState(false);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
+
+  const sortOptions = [
+    { value: 'default', label: 'Mặc định' },
+    { value: 'price-asc', label: 'Giá: Thấp đến Cao' },
+    { value: 'price-desc', label: 'Giá: Cao đến Thấp' },
+    { value: 'name-asc', label: 'Tên: A-Z' },
+    { value: 'name-desc', label: 'Tên: Z-A' },
+  ];
 
   const skinTypes = ['Tất cả', 'Da dầu', 'Da khô', 'Da nhạy cảm', 'Da hỗn hợp'];
 
@@ -36,11 +51,11 @@ const Products = () => {
     const loadCategories = async () => {
       try {
         const res = await fetchCategories();
-        // API returns array directly, not wrapped
         const cats = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
         setCategories(cats);
       } catch (err) {
         console.error('Failed to load categories', err);
+        setError('Không thể tải danh mục sản phẩm.');
       }
     };
     loadCategories();
@@ -54,7 +69,16 @@ const Products = () => {
     fetchProducts(params)
       .then(res => {
         const data = res.data?.data ?? res.data;
-        setProducts(Array.isArray(data) ? data : []);
+        const items = Array.isArray(data) ? data : [];
+        setProducts(items);
+        
+        if (items.length > 0) {
+          const max = Math.max(...items.map(p => p.price));
+          const roundedMax = Math.ceil(max / 1000000) * 1000000;
+          setMaxPriceLimit(Math.max(roundedMax, 10000000));
+          setPriceRange(Math.max(max, 10000000));
+        }
+        
         setLoading(false);
       })
       .catch(err => {
@@ -65,12 +89,19 @@ const Products = () => {
   }, [activeCategoryId]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
+    let result = products.filter(p => {
       const matchPrice = p.price <= priceRange;
       const matchSkin = activeSkinType === 'Tất cả' || (p.description && p.description.includes(activeSkinType));
       return matchPrice && matchSkin;
     });
-  }, [priceRange, products, activeSkinType]);
+    switch (sortBy) {
+      case 'price-asc': result.sort((a, b) => a.price - b.price); break;
+      case 'price-desc': result.sort((a, b) => b.price - a.price); break;
+      case 'name-asc': result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'name-desc': result.sort((a, b) => b.name.localeCompare(a.name)); break;
+    }
+    return result;
+  }, [priceRange, products, activeSkinType, sortBy]);
 
   if (loading) return <div className="loader-container"><div className="loader"></div></div>;
   if (error) return (
@@ -91,6 +122,10 @@ const Products = () => {
         title="Bộ Sưu Tập Thảo Mộc Cao Cấp | HerbSpa Lab" 
         description="Trải nghiệm các dòng sản phẩm chăm sóc da thảo dược thượng hạng. Giải pháp cá nhân hóa cho làn da của bạn." 
       />
+
+      <div className="container" style={{ paddingTop: '1rem' }}>
+        <Breadcrumb items={[{ label: 'Trang chủ', to: '/' }, { label: 'Sản phẩm' }]} />
+      </div>
 
       {/* Hero Header */}
       <section className="products-hero">
@@ -166,9 +201,9 @@ const Products = () => {
               <div className="price-slider-container">
                 <input 
                   type="range" 
-                  min="100000" 
-                  max="3000000" 
-                  step="50000"
+                  min="0" 
+                  max={maxPriceLimit} 
+                  step="100000"
                   value={priceRange}
                   onChange={(e) => setPriceRange(Number(e.target.value))}
                   className="luxury-slider"
@@ -189,9 +224,18 @@ const Products = () => {
         <main className="products-main-new">
           <div className="results-header">
             <span className="results-count">Hiển thị <strong>{filteredProducts.length}</strong> sản phẩm</span>
-            <div className="sort-dropdown">
-              <span>Sắp xếp: <strong>Mặc định</strong></span>
+            <div className="sort-dropdown" onClick={() => setSortOpen(!sortOpen)} onBlur={() => setTimeout(() => setSortOpen(false), 200)} tabIndex={0}>
+              <span>Sắp xếp: <strong>{sortOptions.find(o => o.value === sortBy)?.label}</strong></span>
               <ChevronDown size={14} />
+              {sortOpen && (
+                <div className="sort-menu">
+                  {sortOptions.map(opt => (
+                    <button key={opt.value} className={`sort-option ${sortBy === opt.value ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); setSortBy(opt.value); setSortOpen(false); }} onMouseDown={(e) => e.preventDefault()}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -210,7 +254,7 @@ const Products = () => {
                   <div className="card-img-wrapper">
                     <Link to={`/product/${p.id}`}>
                       <LazyImage 
-                        src={p.images?.[0]?.url || 'https://via.placeholder.com/300x400'} 
+                        src={p.thumbnail || p.images?.[0]?.url || 'https://via.placeholder.com/300x400'} 
                         alt={p.name} 
                         width={300} 
                         height={400} 
@@ -223,7 +267,7 @@ const Products = () => {
                         id: p.id, 
                         name: p.name, 
                         price: p.price, 
-                        image: p.images?.[0]?.url || '',
+                        image: p.thumbnail || p.images?.[0]?.url || '',
                         category: p.category?.name
                       })}
                     >
@@ -240,7 +284,7 @@ const Products = () => {
                   </div>
                   <div className="card-footer">
                     <span className="price">{p.price.toLocaleString()}₫</span>
-                    <button className="cart-add-btn">
+                    <button className="cart-add-btn" onClick={() => addToCart({ id: p.id, name: p.name, price: p.price, image: p.thumbnail || p.images?.[0]?.url || '' })}>
                       <ShoppingBag size={18} />
                     </button>
                   </div>
@@ -258,7 +302,7 @@ const Products = () => {
               <Search size={48} />
               <h3>Không tìm thấy sản phẩm</h3>
               <p>Thử thay đổi bộ lọc hoặc tìm kiếm theo từ khóa khác.</p>
-              <button className="btn-outline" onClick={() => {setActiveCategoryId('all'); setPriceRange(3000000);}}>
+              <button className="btn-outline" onClick={() => {setActiveCategoryId('all'); setPriceRange(maxPriceLimit);}}>
                 XÓA TẤT CẢ BỘ LỌC
               </button>
             </motion.div>

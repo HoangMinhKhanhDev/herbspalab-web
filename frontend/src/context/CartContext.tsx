@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 export interface CartProduct {
   id: string;
@@ -53,6 +54,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return [...prevCart, { ...product, quantity }];
     });
     setIsCartOpen(true);
+    toast.success('Đã thêm vào giỏ hàng!');
   };
 
   const removeFromCart = (productId: string) => {

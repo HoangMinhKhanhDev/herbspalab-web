@@ -5,6 +5,7 @@ import { ChevronRight, MapPin, CreditCard, CheckCircle, ArrowLeft } from 'lucide
 import { Link } from 'react-router-dom';
 import SEO from '../components/common/SEO';
 import { createOrder } from '../api/orderApi';
+import toast from 'react-hot-toast';
 
 const steps = ['Thông tin', 'Thanh toán', 'Hoàn tất'];
 
@@ -18,10 +19,26 @@ const Checkout = () => {
     phone: '',
     address: '',
     city: 'Hà Nội',
-    paymentMethod: 'Stripe' // default to Stripe for premium feel
+    paymentMethod: 'Stripe'
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateShipping = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = 'Vui lòng nhập họ tên';
+    if (!formData.phone.trim()) newErrors.phone = 'Vui lòng nhập số điện thoại';
+    else if (!/^[0-9]{10,11}$/.test(formData.phone.trim())) newErrors.phone = 'Số điện thoại không hợp lệ';
+    if (!formData.address.trim()) newErrors.address = 'Vui lòng nhập địa chỉ';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handlePlaceOrder = async () => {
+    if (!validateShipping()) {
+      setCurrentStep(0);
+      toast.error('Vui lòng điền đầy đủ thông tin giao hàng');
+      return;
+    }
     try {
       setLoading(true);
       const orderData = {
@@ -52,7 +69,7 @@ const Checkout = () => {
         nextStep();
       }
     } catch (error) {
-      alert('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
+      toast.error('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -102,16 +119,25 @@ const Checkout = () => {
                 >
                   <h3><MapPin size={20} /> Thông tin giao hàng</h3>
                   <div className="form-grid">
-                    <input type="text" placeholder="Họ và tên" className="premium-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-                    <input type="text" placeholder="Số điện thoại" className="premium-input" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
-                    <input type="text" placeholder="Địa chỉ chi tiết" className="premium-input full" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                    <div className="input-wrap">
+                      <input type="text" placeholder="Họ và tên" className={`premium-input ${errors.name ? 'input-error' : ''}`} value={formData.name} onChange={(e) => { setFormData({...formData, name: e.target.value}); setErrors({...errors, name: ''}); }} />
+                      {errors.name && <span className="field-error">{errors.name}</span>}
+                    </div>
+                    <div className="input-wrap">
+                      <input type="text" placeholder="Số điện thoại" className={`premium-input ${errors.phone ? 'input-error' : ''}`} value={formData.phone} onChange={(e) => { setFormData({...formData, phone: e.target.value}); setErrors({...errors, phone: ''}); }} />
+                      {errors.phone && <span className="field-error">{errors.phone}</span>}
+                    </div>
+                    <div className="input-wrap full">
+                      <input type="text" placeholder="Địa chỉ chi tiết" className={`premium-input ${errors.address ? 'input-error' : ''}`} value={formData.address} onChange={(e) => { setFormData({...formData, address: e.target.value}); setErrors({...errors, address: ''}); }} />
+                      {errors.address && <span className="field-error">{errors.address}</span>}
+                    </div>
                     <select className="premium-input" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})}>
                       <option>Hà Nội</option>
                       <option>TP. Hồ Chí Minh</option>
                       <option>Đà Nẵng</option>
                     </select>
                   </div>
-                  <button className="btn btn-primary w-full mt-30" onClick={nextStep}>
+                  <button className="btn btn-primary w-full mt-30" onClick={() => { if (validateShipping()) nextStep(); }}>
                     TIẾP TỤC THANH TOÁN <ChevronRight size={18} />
                   </button>
                 </motion.div>

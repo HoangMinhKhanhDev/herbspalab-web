@@ -49,9 +49,9 @@ const Settings: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="p-20 text-center flex flex-col items-center justify-center space-y-4">
-      <Loader2 className="w-10 h-10 text-mint animate-spin" />
-      <p className="font-bold text-sage/40 uppercase tracking-[0.2em] text-[10px]">Đang tải cấu hình hệ thống...</p>
+    <div className="p-20 text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto mb-4"></div>
+      <p className="text-gray-500 text-sm">Đang tải cấu hình hệ thống...</p>
     </div>
   );
 
@@ -72,8 +72,8 @@ const Settings: React.FC = () => {
       icon: Palette, 
       desc: 'Tùy chỉnh logo, màu sắc chủ đạo và typography.',
       fields: [
-        { key: 'brandColor', label: 'Màu thương hiệu (Sage)', type: 'color' },
-        { key: 'accentColor', label: 'Màu nhấn (Gold)', type: 'color' },
+        { key: 'brandColor', label: 'Màu thương hiệu', type: 'color' },
+        { key: 'accentColor', label: 'Màu nhấn', type: 'color' },
       ]
     },
     { 
@@ -89,59 +89,56 @@ const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000 max-w-7xl pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-4">
+    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3 text-gold font-bold text-[11px] uppercase tracking-[0.3em] mb-2">
-            <SettingsIcon className="w-4 h-4" />
-            Core System Infrastructure
-          </div>
-          <h1 className="text-5xl font-display italic text-sage leading-tight tracking-tight">Cài đặt Hệ thống</h1>
-          <p className="text-sage/40 text-[12px] font-bold uppercase tracking-[0.2em] mt-2">Cấu hình vận hành, bảo mật & Bản sắc thương hiệu HerbSpaLab</p>
+          <h1 className="text-2xl font-bold text-gray-900">Cài đặt Hệ thống</h1>
+          <p className="text-sm text-gray-500">Cấu hình vận hành, bảo mật và giao diện website</p>
         </div>
         <button 
           onClick={handleSave}
           disabled={saving}
-          className="px-10 py-4 bg-ink text-white rounded-2xl flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.2em] hover:bg-mint transition-all shadow-xl disabled:opacity-50"
+          className="px-6 py-2 bg-sage text-white rounded-lg flex items-center gap-2 text-sm font-bold hover:bg-sage/90 transition-colors disabled:opacity-50"
         >
-          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-          Lưu tất cả cấu hình
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Lưu thay đổi
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-10">
+      <div className="space-y-6">
         {sections.map((section) => (
-          <div key={section.id} className="bg-white rounded-[3rem] border border-black/5 p-12 shadow-sm relative overflow-hidden group">
-            <div className="flex flex-col lg:flex-row gap-12 relative">
-              <div className="lg:w-1/3 space-y-6">
-                <div className="w-16 h-16 bg-mint/10 text-mint rounded-2xl flex items-center justify-center border border-mint/10 shadow-sm">
-                  <section.icon className="w-8 h-8" />
+          <div key={section.id} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row gap-8">
+              <div className="lg:w-1/3">
+                <div className="flex items-center gap-3 mb-2">
+                  <section.icon className="w-5 h-5 text-gray-400" />
+                  <h3 className="text-lg font-bold text-gray-900">{section.label}</h3>
                 </div>
-                <div>
-                  <h3 className="text-3xl font-bold text-sage tracking-tight">{section.label}</h3>
-                  <p className="text-sage/40 text-sm mt-3 leading-relaxed font-medium">{section.desc}</p>
-                </div>
+                <p className="text-gray-500 text-sm">{section.desc}</p>
               </div>
-              <div className="lg:w-2/3 grid grid-cols-1 gap-8">
+              <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {section.fields.map((field) => (
-                  <div key={field.key} className="space-y-3">
-                    <label className="text-[11px] font-bold text-gold uppercase tracking-[0.2em] ml-1">{field.label}</label>
+                  <div key={field.key} className="space-y-2">
+                    <label className="text-sm font-bold text-gray-700 block">{field.label}</label>
                     {field.type === 'toggle' ? (
-                      <div 
+                      <button 
                         onClick={() => handleChange(field.key, settings[field.key] === 'true' ? 'false' : 'true')}
-                        className="flex items-center gap-5 bg-gray-50 p-5 px-8 rounded-2xl border border-black/5 w-fit shadow-inner cursor-pointer"
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          settings[field.key] === 'true' ? 'bg-sage' : 'bg-gray-300'
+                        }`}
                       >
-                        <div className={`w-14 h-7 rounded-full relative transition-all ${settings[field.key] === 'true' ? 'bg-mint' : 'bg-gray-300'}`}>
-                          <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-sm ${settings[field.key] === 'true' ? 'right-1' : 'left-1'}`} />
-                        </div>
-                        <span className="text-[11px] font-bold text-sage uppercase tracking-[0.2em]">{settings[field.key] === 'true' ? 'Kích hoạt' : 'Vô hiệu hóa'}</span>
-                      </div>
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          settings[field.key] === 'true' ? 'translate-x-6' : 'translate-x-1'
+                        }`} />
+                      </button>
                     ) : (
                       <input 
                         type={field.type} 
                         value={settings[field.key]}
                         onChange={(e) => handleChange(field.key, e.target.value)}
-                        className="w-full px-6 py-4.5 rounded-2xl bg-gray-50 border border-black/5 focus:border-gold outline-none font-bold text-sage text-lg transition-all shadow-sm" 
+                        className={`w-full px-4 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:border-sage focus:ring-1 focus:ring-sage outline-none text-sm transition-all ${
+                          field.type === 'color' ? 'h-10 p-1 cursor-pointer' : ''
+                        }`} 
                       />
                     )}
                   </div>
@@ -152,21 +149,20 @@ const Settings: React.FC = () => {
         ))}
       </div>
 
-      {/* Enlarged Advanced Maintenance */}
-      <div className="bg-ink p-12 rounded-[3rem] text-white flex flex-col xl:flex-row items-center justify-between gap-10 border border-white/5 relative overflow-hidden shadow-2xl">
-        <div className="relative flex items-center gap-8">
-          <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10 shadow-xl">
-            <Database className="w-10 h-10 text-gold" />
+      {/* Advanced Maintenance */}
+      <div className="bg-gray-900 p-6 rounded-xl text-white flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
+            <Database className="w-6 h-6 text-gray-400" />
           </div>
           <div>
-            <h3 className="text-3xl font-bold uppercase tracking-[0.1em]">Bảo trì hệ thống chuyên sâu</h3>
-            <p className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-2">Đồng bộ hóa kho dữ liệu, tối ưu hóa database & Làm sạch bộ nhớ đệm</p>
+            <h3 className="text-lg font-bold">Bảo trì hệ thống</h3>
+            <p className="text-gray-400 text-sm">Đồng bộ hóa dữ liệu và làm sạch bộ nhớ đệm</p>
           </div>
         </div>
-        <button className="px-12 py-5 bg-mint text-white rounded-2xl font-bold text-[12px] uppercase tracking-[0.2em] hover:bg-white hover:text-ink transition-all shadow-xl active:scale-95">
-          Khởi chạy bảo trì
+        <button className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-bold transition-colors">
+          Chạy bảo trì
         </button>
-        <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-mint/5 blur-3xl rounded-full" />
       </div>
     </div>
   );

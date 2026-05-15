@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-import { Reveal } from '../components/Reveal';
 import SEO from '../components/common/SEO';
 import LazyImage from '../components/common/LazyImage';
 import { ShieldCheck, Leaf, FlaskConical, Handshake, Award, FileCheck, Sparkles, Factory, Heart } from 'lucide-react';
@@ -44,284 +42,138 @@ const About = () => {
   ];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }} 
-      className="page page-transition"
-    >
+    <div className="bg-white">
       <SEO 
         title="Về Chúng Tôi | HerbSpaLab" 
         description="HerbSpaLab – Đơn vị sản xuất và gia công Mỹ phẩm với định hướng An toàn cho sức khỏe, Minh bạch pháp lý, Đồng hành cùng thương hiệu Việt." 
       />
 
       {/* --- HERO SECTION --- */}
-      <section className="section container" aria-labelledby="about-title">
-        <div className="about-hero-layout">
-          <div className="about-text-content">
-            <Reveal>
-              <span className="hero-subtitle" style={{ color: 'var(--secondary)' }}>VỀ CHÚNG TÔI</span>
-            </Reveal>
-            <Reveal>
-              <h1 id="about-title" className="section-title">HerbSpaLab</h1>
-            </Reveal>
-            <div className="divider" role="presentation"></div>
-            <p className="about-intro">
-              Chúng tôi là đơn vị sản xuất và gia công Mỹ phẩm với định hướng <strong>An toàn cho sức khỏe – Minh bạch pháp lý – Đồng hành cùng thương hiệu Việt</strong>. Hướng tới những sản phẩm có nguồn gốc thiên nhiên lành tính được kết hợp cùng tinh hoa hiện đại của khoa học.
+      <section className="py-20 md:py-32 border-b border-gray-50">
+        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <span className="text-sage font-bold tracking-widest text-xs uppercase mb-4 block">GIỚI THIỆU</span>
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">HerbSpaLab</h1>
+            <p className="text-gray-600 text-lg mb-6 leading-relaxed">
+              Chúng tôi là đơn vị sản xuất và gia công Mỹ phẩm với định hướng <strong className="text-gray-900">An toàn cho sức khỏe – Minh bạch pháp lý – Đồng hành cùng thương hiệu Việt</strong>.
             </p>
-            <p className="about-desc">
+            <p className="text-gray-500 leading-relaxed">
               Công ty sở hữu cơ sở sản xuất Mỹ phẩm được Sở Y tế cấp Giấy chứng nhận đủ điều kiện sản xuất, 
               đáp ứng đầy đủ các quy định hiện hành của pháp luật Việt Nam. Với dây chuyền sản xuất dạng ướt 
-              cùng hệ thống máy móc, thiết bị hiện đại, chúng tôi chuyên sản xuất và gia công các dòng sản phẩm 
-              chăm sóc và làm sạch da, tóc cho cá nhân, gia đình, spa nhỏ và chuỗi spa lớn.
+              cùng hệ thống máy móc, thiết bị hiện đại.
             </p>
           </div>
-          <div className="about-image-collage">
-             <div className="img-main">
-               <LazyImage src="/assets/images/hero_bg.png" alt="Cơ sở sản xuất HerbSpaLab" />
-             </div>
-             <div className="img-sub">
-               <LazyImage src="/assets/images/promo_img.png" alt="Không gian spa chăm sóc da" />
-             </div>
+          <div className="relative">
+            <div className="rounded-2xl overflow-hidden shadow-2xl">
+              <LazyImage src="/assets/images/hero_bg.png" alt="Cơ sở sản xuất HerbSpaLab" />
+            </div>
+            <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-2xl overflow-hidden border-8 border-white shadow-xl hidden md:block">
+              <LazyImage src="/assets/images/promo_img.png" alt="HerbSpaLab" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* --- CORE VALUES --- */}
-      <section className="section bg-accent">
+      <section className="py-24 bg-gray-50">
         <div className="container">
-          <Reveal>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <span className="subtitle">GIÁ TRỊ CỐT LÕI</span>
-              <h2 className="title">Ba Trụ Cột Phát Triển</h2>
-            </div>
-          </Reveal>
-          <div className="about-features-grid">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Giá Trị Cốt Lõi</h2>
+            <p className="text-gray-500">Ba trụ cột phát triển bền vững của chúng tôi.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {coreValues.map((f, i) => (
-              <motion.div 
-                key={i} 
-                className="about-feature-card"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.2 }}
-              >
-                <div className="feature-num"><f.icon size={32} /></div>
-                <h3>{f.title}</h3>
-                <p>{f.desc}</p>
-              </motion.div>
+              <div key={i} className="bg-white p-10 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-14 h-14 bg-sage/10 text-sage rounded-xl flex items-center justify-center mb-6">
+                  <f.icon size={28} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{f.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* --- SERVICES SECTION --- */}
-      <section className="section container">
-        <Reveal>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <span className="subtitle">DỊCH VỤ</span>
-            <h2 className="title">Gia Công Mỹ Phẩm Trọn Gói</h2>
-            <p style={{ maxWidth: '600px', margin: '20px auto 0', color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: 1.8 }}>
-              Đồng hành cùng khách hàng từ ý tưởng đến sản phẩm hoàn chỉnh
-            </p>
-          </div>
-        </Reveal>
-        <div className="about-features-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-          {services.map((s, i) => (
-            <motion.div 
-              key={i} 
-              className="about-feature-card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-            >
-              <div className="feature-num" style={{ color: 'var(--primary-light)' }}><s.icon size={28} /></div>
-              <h3>{s.title}</h3>
-              <p>{s.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* --- PRODUCT RANGE --- */}
-      <section className="section bg-accent">
+      <section className="py-24">
         <div className="container">
-          <Reveal>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <span className="subtitle">SẢN PHẨM</span>
-              <h2 className="title">Dòng Sản Phẩm Chúng Tôi Sản Xuất</h2>
-            </div>
-          </Reveal>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center' }}>
-            {products.map((p, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                style={{
-                  padding: '16px 32px',
-                  background: 'white',
-                  borderRadius: '100px',
-                  border: '1px solid var(--border)',
-                  fontSize: '0.95rem',
-                  fontWeight: 600,
-                  color: 'var(--primary)',
-                  cursor: 'default',
-                  transition: 'var(--transition)',
-                }}
-                whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}
-              >
-                {p}
-              </motion.div>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Gia Công Mỹ Phẩm Trọn Gói</h2>
+            <p className="text-gray-500">Đồng hành cùng khách hàng từ ý tưởng đến sản phẩm hoàn chỉnh.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {services.map((s, i) => (
+              <div key={i} className="p-8 rounded-xl border border-gray-100 bg-white">
+                <div className="text-sage mb-4"><s.icon size={24} /></div>
+                <h4 className="text-base font-bold text-gray-900 mb-2">{s.title}</h4>
+                <p className="text-gray-500 text-xs leading-relaxed">{s.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* --- VISION SECTION --- */}
-      <section className="section container">
-        <div className="about-hero-layout" style={{ gap: '80px' }}>
-          <div className="about-text-content">
-            <Reveal>
-              <span className="hero-subtitle" style={{ color: 'var(--secondary)' }}>TẦM NHÌN</span>
-              <h2 className="section-title" style={{ fontSize: '2.8rem' }}>Nâng Tầm Chuẩn Mực Mỹ Phẩm An Toàn</h2>
-            </Reveal>
-            <p className="about-desc">
-              Chúng tôi hướng đến sản xuất các sản phẩm mỹ phẩm <strong>An toàn – Minh bạch</strong> góp phần 
-              nâng tầm chuẩn mực mỹ phẩm an toàn tại Việt Nam. Nơi mỗi sản phẩm không chỉ làm đẹp bề mặt 
-              mà còn tôn trọng, bảo vệ làn da, mái tóc và sức khỏe người tiêu dùng một cách bền vững.
-            </p>
-            <p className="about-desc">
-              Trong một thị trường nhiều lựa chọn, chúng tôi lựa chọn con đường khắt khe hơn: 
-              <em> Khắt khe trong nguyên liệu, nghiêm ngặt trong quy trình và minh bạch trong từng thông tin sản phẩm. </em>
-              Với định hướng phát triển lâu dài, chúng tôi không chạy theo xu hướng ngắn hạn, mà kiên định xây dựng giá trị cốt lõi dựa trên sự trung thực và trách nhiệm.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '32px' }}>
-              {[
-                { icon: Heart, text: "An toàn cho da, tóc và sức khỏe" },
-                { icon: ShieldCheck, text: "Tuân thủ nghiêm ngặt các quy định pháp luật về mỹ phẩm" },
-                { icon: Sparkles, text: "Chất lượng ổn định – rõ ràng nguồn gốc – trung thực trong công bố" }
-              ].map((item, i) => (
-                <motion.div 
-                  key={i} 
-                  style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--primary)' }}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15 }}
-                >
-                  <item.icon size={20} style={{ flexShrink: 0, color: 'var(--secondary)' }} />
-                  <span style={{ fontWeight: 600 }}>{item.text}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          <div className="about-image-collage">
-            <div className="img-main">
-              <LazyImage src="/assets/images/heritage_bg.png" alt="Tầm nhìn HerbSpaLab" />
-            </div>
+      {/* --- PRODUCT RANGE --- */}
+      <section className="py-24 bg-gray-900 text-white">
+        <div className="container text-center">
+          <h2 className="text-3xl font-bold mb-12">Danh Mục Sản Phẩm</h2>
+          <div className="flex flex-wrap justify-center gap-4">
+            {products.map((p, i) => (
+              <span key={i} className="px-6 py-3 bg-white/10 rounded-full text-sm font-medium border border-white/10">{p}</span>
+            ))}
           </div>
         </div>
       </section>
 
       {/* --- MISSION SECTION --- */}
-      <section className="section bg-accent">
+      <section className="py-24 bg-gray-50">
         <div className="container">
-          <Reveal>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <span className="subtitle">SỨ MỆNH</span>
-              <h2 className="title">Xây Dựng Niềm Tin Mỹ Phẩm Việt</h2>
-              <p style={{ maxWidth: '700px', margin: '20px auto 0', color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: 1.8 }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">Sứ Mệnh & Tầm Nhìn</h2>
+              <p className="text-gray-600 mb-8 leading-relaxed">
                 Chúng tôi không chỉ tạo ra mỹ phẩm, mà còn góp phần xây dựng niềm tin 
                 cho thị trường mỹ phẩm an toàn, hiệu quả và phù hợp với thể trạng người Việt.
               </p>
+              <div className="space-y-4">
+                {missionPoints.map((m, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="mt-1 text-sage"><m.icon size={18} /></div>
+                    <p className="text-gray-500 text-sm leading-relaxed">{m.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </Reveal>
-          <div className="about-features-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-            {missionPoints.map((m, i) => (
-              <motion.div 
-                key={i} 
-                className="about-feature-card"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-              >
-                <div className="feature-num" style={{ color: 'var(--secondary)' }}><m.icon size={28} /></div>
-                <p style={{ fontSize: '1rem', lineHeight: 1.8 }}>{m.text}</p>
-              </motion.div>
-            ))}
+            <div className="bg-white p-8 md:p-12 rounded-3xl border border-gray-200 shadow-xl">
+               <h3 className="text-xl font-bold text-gray-900 mb-8">Thông Tin Doanh Nghiệp</h3>
+               <div className="space-y-6">
+                {[
+                  { label: "Thương hiệu", value: "HerbSpaLab" },
+                  { label: "Tên quốc tế", value: "THU HUYEN SMILE SPA COMPANY LIMITED" },
+                  { label: "Mã số thuế", value: "2500712979" },
+                  { label: "Giám đốc", value: "Nguyễn Thị Thu Huyền" },
+                  { label: "Hotline", value: "0972 245 219" },
+                  { label: "Địa chỉ", value: "Vĩnh Yên, Vĩnh Phúc" },
+                ].map((row, i) => (
+                  <div key={i} className="flex flex-col md:flex-row md:justify-between border-b border-gray-100 pb-4 gap-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{row.label}</span>
+                    <span className="text-sm font-medium text-gray-700">{row.value}</span>
+                  </div>
+                ))}
+               </div>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* --- COMPANY INFO --- */}
-      <section className="section container">
-        <Reveal>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <span className="subtitle">THÔNG TIN</span>
-            <h2 className="title">Thông Tin Doanh Nghiệp</h2>
-          </div>
-        </Reveal>
-        <motion.div 
-          style={{
-            maxWidth: '800px',
-            margin: '0 auto',
-            background: 'white',
-            borderRadius: '40px',
-            padding: '60px',
-            border: '1px solid var(--border)',
-            boxShadow: '0 40px 100px -20px rgba(0,0,0,0.06)'
-          }}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <div style={{ display: 'grid', gap: '24px' }}>
-            {[
-              { label: "Thương hiệu", value: "HerbSpaLab" },
-              { label: "Tên quốc tế", value: "THU HUYEN SMILE SPA COMPANY LIMITED" },
-              { label: "Mã số thuế", value: "2500712979" },
-              { label: "Ngày thành lập", value: "09/01/2024" },
-              { label: "Giám đốc", value: "Nguyễn Thị Thu Huyền" },
-              { label: "Lĩnh vực", value: "Sản xuất & gia công mỹ phẩm, Spa, Chăm sóc da" },
-              { label: "Hotline", value: "0972 245 219" },
-              { label: "Địa chỉ ĐKKD", value: "Thôn Phú Ninh, Xã Thanh Vân, Huyện Tam Dương, Tỉnh Vĩnh Phúc" },
-              { label: "Cơ sở hoạt động", value: "Ngách 6, ngõ 23, đường Đầm Vạc, Khu 7, Đống Đa, Vĩnh Yên, Vĩnh Phúc" },
-            ].map((row, i) => (
-              <div key={i} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', borderBottom: '1px solid var(--border)', paddingBottom: '20px' }}>
-                <span style={{ 
-                  minWidth: '160px', 
-                  fontSize: '0.75rem', 
-                  fontWeight: 700, 
-                  letterSpacing: '1.5px', 
-                  color: 'var(--text-muted)', 
-                  textTransform: 'uppercase',
-                  paddingTop: '2px'
-                }}>
-                  {row.label}
-                </span>
-                <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--primary)' }}>{row.value}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </section>
 
       {/* --- CLOSING QUOTE --- */}
-      <section className="section container">
-        <div className="mission-statement">
-          <Reveal>
-            <h2 className="statement-text">
-              "Một sản phẩm tốt không chỉ nằm ở công thức, mà còn ở sự nghiêm túc trong quy trình sản xuất và trách nhiệm với người tiêu dùng."
-            </h2>
-          </Reveal>
-        </div>
+      <section className="py-24 container text-center">
+        <h2 className="text-2xl md:text-3xl font-medium text-gray-800 max-w-4xl mx-auto italic leading-relaxed">
+          "Một sản phẩm tốt không chỉ nằm ở công thức, mà còn ở sự nghiêm túc trong quy trình sản xuất và trách nhiệm với người tiêu dùng."
+        </h2>
       </section>
-    </motion.div>
+    </div>
   );
 };
 

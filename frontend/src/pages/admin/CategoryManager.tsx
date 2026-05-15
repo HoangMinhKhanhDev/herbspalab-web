@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Folder, ChevronRight, ChevronDown, Upload } from 'lucide-react';
+import { Folder, ChevronRight, ChevronDown, Upload, Plus, Edit, Trash2 } from 'lucide-react';
 import { getCategories, createCategory, updateCategory, deleteCategory, adminUploadSingle } from '../../api/adminApi';
 import toast from 'react-hot-toast';
-
-import AdminEmptyState from '../../components/admin/AdminEmptyState';
-import AdminLoadingSkeleton from '../../components/admin/AdminLoadingSkeleton';
-import AdminModal from '../../components/admin/AdminModal';
 
 const CategoryManager: React.FC = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -22,7 +18,6 @@ const CategoryManager: React.FC = () => {
     try { 
       const data = await getCategories(); 
       setCategories(data); 
-      // Expand all by default
       setExpandedIds(data.map((c: any) => c.id));
     }
     catch (e: any) { toast.error('Lỗi tải danh mục'); }
@@ -50,7 +45,11 @@ const CategoryManager: React.FC = () => {
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     setUploading(true);
-    try { const { data } = await adminUploadSingle(file); setFormData(p => ({ ...p, banner: data.url })); toast.success('Tải banner thành công'); }
+    try { 
+      const { data } = await adminUploadSingle(file); 
+      setFormData(p => ({ ...p, banner: data.url })); 
+      toast.success('Tải banner thành công'); 
+    }
     catch { toast.error('Lỗi tải banner'); }
     finally { setUploading(false); }
   };
@@ -91,50 +90,52 @@ const CategoryManager: React.FC = () => {
     const hasChildren = children.length > 0;
 
     return (
-      <div className="animate-in fade-in slide-in-from-left-2 duration-300 relative group">
-        {level > 0 && (
-           <div className="absolute top-0 bottom-0 w-px bg-black/5" style={{ left: `${level * 40 - 20}px` }} />
-        )}
-        {level > 0 && (
-           <div className="absolute w-4 h-px bg-black/5 top-9" style={{ left: `${level * 40 - 20}px` }} />
-        )}
+      <div className="relative">
         <div 
-          className="flex items-start gap-4 py-4 hover:bg-gray-50/50 transition-colors rounded-2xl pr-4 relative z-10"
-          style={{ paddingLeft: `${level === 0 ? 0 : level * 40}px` }}
+          className="flex items-center gap-4 py-3 hover:bg-gray-50 border-b border-gray-100 group"
+          style={{ paddingLeft: `${level * 24 + 12}px` }}
         >
-          {/* Folder Icon Box */}
-          <div className="w-10 h-10 rounded-xl bg-gray-50 border border-black/5 flex items-center justify-center text-sage/20 shadow-sm shrink-0">
-            {category.banner ? (
-              <img src={category.banner} className="w-full h-full object-cover rounded-xl" alt="" />
-            ) : (
-              <Folder className="w-4 h-4" />
-            )}
-          </div>
-
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <h4 className="font-bold text-sage text-sm tracking-tight">{category.name}</h4>
-              {hasChildren && (
-                <button onClick={() => toggleExpand(category.id)} className="p-1 hover:bg-gray-100 rounded-md transition-colors focus:ring-2 focus:ring-mint outline-none">
-                  {isExpanded ? <ChevronDown className="w-3 h-3 text-sage/30" /> : <ChevronRight className="w-3 h-3 text-sage/30" />}
-                </button>
+          <div className="flex items-center gap-2 w-full">
+            <button 
+              onClick={() => toggleExpand(category.id)}
+              className={`p-1 hover:bg-gray-200 rounded transition-colors ${!hasChildren && 'invisible'}`}
+            >
+              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+            
+            <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center shrink-0">
+              {category.banner ? (
+                <img src={category.banner} className="w-full h-full object-cover rounded" alt="" />
+              ) : (
+                <Folder size={14} className="text-gray-400" />
               )}
             </div>
-            <p className="text-[10px] text-sage/30 font-medium lowercase tracking-tight">
-              /{category.slug} • {category._count?.products || 0} sản phẩm
-            </p>
-            <div className="flex items-center gap-4 pt-1 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
-              <button onClick={() => handleEdit(category)} className="text-[10px] font-bold text-sage/40 hover:text-mint transition-colors">Sửa</button>
-              <button onClick={() => handleDelete(category.id)} className="text-[10px] font-bold text-sage/40 hover:text-red-400 transition-colors">Xóa</button>
-              <button onClick={() => openNew(category.id)} className="text-[10px] font-bold text-sage/40 hover:text-gold transition-colors flex items-center gap-1">
-                + Thêm con
+
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-gray-900 text-sm truncate">{category.name}</div>
+              <div className="text-[10px] text-gray-400 font-mono">{category.slug}</div>
+            </div>
+
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button onClick={() => openNew(category.id)} className="p-1.5 text-gray-400 hover:text-sage hover:bg-gray-100 rounded" title="Thêm con">
+                <Plus size={14} />
               </button>
+              <button onClick={() => handleEdit(category)} className="p-1.5 text-gray-400 hover:text-sage hover:bg-gray-100 rounded" title="Sửa">
+                <Edit size={14} />
+              </button>
+              <button onClick={() => handleDelete(category.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded" title="Xóa">
+                <Trash2 size={14} />
+              </button>
+            </div>
+            
+            <div className="w-24 text-right pr-4">
+              <span className="text-xs font-medium text-gray-500">{category._count?.products || 0} SP</span>
             </div>
           </div>
         </div>
         
         {hasChildren && isExpanded && (
-          <div className="mt-0">
+          <div>
             {children.map(child => (
               <CategoryNode key={child.id} category={child} level={level + 1} />
             ))}
@@ -145,122 +146,125 @@ const CategoryManager: React.FC = () => {
   };
 
   return (
-    <div className="animate-in fade-in duration-700 max-w-6xl mx-auto py-4">
-      {/* Simple Header */}
-      <div className="flex items-center justify-between mb-12">
-        <h1 className="text-4xl font-display italic text-sage tracking-tight">Danh mục</h1>
-        <button onClick={() => openNew()} className="px-8 py-3 bg-ink text-white rounded-full text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-mint transition-all shadow-xl">
-          + THÊM DANH MỤC
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý Danh mục</h1>
+          <p className="text-sm text-gray-500">Tổ chức phân loại sản phẩm theo phân cấp</p>
+        </div>
+        <button 
+          onClick={() => openNew()}
+          className="flex items-center gap-2 px-4 py-2 bg-sage text-white rounded-lg hover:bg-sage-dark font-bold text-sm transition-colors"
+        >
+          <Plus size={18} />
+          Thêm danh mục
         </button>
       </div>
 
-      {loading ? (
-        <AdminLoadingSkeleton type="list" count={6} />
-      ) : (
-        <>
-          {/* List Area */}
-          <div className="space-y-1">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="p-20 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto"></div>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
             {categories.filter(c => !c.parentId).map((parent) => (
               <CategoryNode key={parent.id} category={parent} level={0} />
             ))}
             
             {categories.length === 0 && (
-              <AdminEmptyState
-                icon={Folder}
-                title="Chưa có danh mục sản phẩm"
-                description="Tạo các danh mục để phân loại sản phẩm của bạn một cách rõ ràng và khoa học."
-                actionLabel="+ THÊM DANH MỤC"
-                onAction={() => openNew()}
-              />
+              <div className="p-20 text-center text-gray-400 text-sm">
+                Chưa có danh mục nào được tạo.
+              </div>
             )}
           </div>
-        </>
-      )}
+        )}
+      </div>
 
-      {/* Modal Overlay */}
-      <AdminModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingCategory ? 'Biên tập danh mục' : 'Thêm danh mục'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-sage/40 uppercase tracking-widest px-1">Tên danh mục *</label>
-            <input 
-              required 
-              value={formData.name} 
-              onChange={e => setFormData({ ...formData, name: e.target.value })} 
-              className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-black/5 focus:border-mint focus:bg-white outline-none text-sage font-bold transition-all shadow-sm" 
-              placeholder="Ví dụ: Chăm sóc da" 
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-sage/40 uppercase tracking-widest px-1">URL Slug</label>
-            <input 
-              required 
-              value={formData.slug} 
-              onChange={e => setFormData({ ...formData, slug: e.target.value })} 
-              className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-black/5 focus:border-mint focus:bg-white outline-none text-sage/60 font-mono text-xs transition-all shadow-sm" 
-              placeholder="Tự động tạo từ tên" 
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-sage/40 uppercase tracking-widest px-1">Danh mục cha</label>
-            <select 
-              value={formData.parentId} 
-              onChange={e => setFormData({ ...formData, parentId: e.target.value })} 
-              className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-black/5 focus:border-mint focus:bg-white outline-none text-sage font-bold cursor-pointer transition-all shadow-sm"
-            >
-              <option value="">— Không (Cấp cao nhất) —</option>
-              {categories.filter(c => c.id !== editingCategory?.id).map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-sage/40 uppercase tracking-widest px-1">Mô tả SEO</label>
-            <textarea 
-              value={formData.description} 
-              onChange={e => setFormData({ ...formData, description: e.target.value })} 
-              rows={3} 
-              className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-black/5 focus:border-mint focus:bg-white outline-none text-sage text-sm font-medium resize-none transition-all shadow-sm" 
-              placeholder="..." 
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-sage/40 uppercase tracking-widest px-1">Ảnh banner</label>
-            <div className="flex gap-3">
-              <input 
-                value={formData.banner} 
-                onChange={e => setFormData({ ...formData, banner: e.target.value })} 
-                className="flex-1 px-6 py-4 rounded-2xl bg-gray-50 border border-black/5 focus:border-mint focus:bg-white outline-none text-sage/40 text-xs transition-all shadow-sm" 
-                placeholder="URL hoặc upload" 
-              />
-              <button 
-                type="button"
-                onClick={() => document.getElementById('cat-upload')?.click()}
-                className="px-6 py-4 bg-white border border-black/10 rounded-2xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-gray-50 transition-all shadow-sm focus:ring-2 focus:ring-mint outline-none"
-              >
-                <Upload className="w-3.5 h-3.5" /> {uploading ? '...' : 'Upload'}
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+              <h3 className="font-bold text-gray-900">{editingCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-900">
+                <Trash2 size={18} className="rotate-45" />
               </button>
-              <input id="cat-upload" type="file" className="hidden" accept="image/*" onChange={handleBannerUpload} />
             </div>
-          </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tên danh mục *</label>
+                  <input 
+                    required 
+                    value={formData.name} 
+                    onChange={e => setFormData({ ...formData, name: e.target.value })} 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-sage focus:border-sage outline-none"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Slug</label>
+                  <input 
+                    required 
+                    value={formData.slug} 
+                    onChange={e => setFormData({ ...formData, slug: e.target.value })} 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-sage focus:border-sage outline-none font-mono text-sm"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Danh mục cha</label>
+                  <select 
+                    value={formData.parentId} 
+                    onChange={e => setFormData({ ...formData, parentId: e.target.value })} 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-sage focus:border-sage outline-none"
+                  >
+                    <option value="">— Cấp cao nhất —</option>
+                    {categories.filter(c => c.id !== editingCategory?.id).map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Mô tả</label>
+                  <textarea 
+                    value={formData.description} 
+                    onChange={e => setFormData({ ...formData, description: e.target.value })} 
+                    rows={2} 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-sage focus:border-sage outline-none text-sm"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Ảnh banner (URL)</label>
+                  <div className="flex gap-2">
+                    <input 
+                      value={formData.banner} 
+                      onChange={e => setFormData({ ...formData, banner: e.target.value })} 
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-sage focus:border-sage outline-none text-sm"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => document.getElementById('cat-upload')?.click()}
+                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-bold"
+                    >
+                      {uploading ? '...' : 'Upload'}
+                    </button>
+                    <input id="cat-upload" type="file" className="hidden" accept="image/*" onChange={handleBannerUpload} />
+                  </div>
+                </div>
+              </div>
 
-          <div className="flex gap-4 pt-6 border-t border-black/5 mt-8">
-            <button type="submit" className="flex-1 py-4 bg-ink text-white rounded-full font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-mint focus:ring-2 focus:ring-offset-2 focus:ring-mint transition-all shadow-xl outline-none">
-              LƯU
-            </button>
-            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-white border border-black/10 text-sage/40 rounded-full font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-sage focus:ring-2 focus:ring-black/10 transition-all outline-none">
-              Hủy
-            </button>
+              <div className="flex gap-3 pt-4">
+                <button type="submit" className="flex-1 py-2 bg-sage text-white rounded-lg font-bold hover:bg-sage-dark transition-colors">
+                  Lưu lại
+                </button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold hover:bg-gray-200 transition-colors">
+                  Hủy
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </AdminModal>
+        </div>
+      )}
     </div>
   );
 };

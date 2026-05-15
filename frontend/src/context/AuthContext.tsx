@@ -7,16 +7,21 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  avatar?: string;
   role: 'customer' | 'admin';
+  createdAt?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
+  updateUser: (data: Partial<User>) => void;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     }
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   // Restore session from server on mount (for page reload with HttpOnly cookie)
   useEffect(() => {
@@ -37,20 +43,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       API.get('/users/profile')
         .then(res => {
           const userData = res.data;
-          // Normalize _id -> id for compatibility
           const normalized: User = {
             id: userData.id || userData._id,
             name: userData.name,
             email: userData.email,
+            phone: userData.phone,
+            avatar: userData.avatar,
             role: userData.role,
+            createdAt: userData.createdAt,
           };
           setUser(normalized);
           localStorage.setItem('userInfo', JSON.stringify(normalized));
         })
         .catch(() => {
-          // Not logged in — that's fine
           localStorage.removeItem('userInfo');
-        });
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -68,7 +78,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: data.id || data._id,
       name: data.name,
       email: data.email,
+      phone: data.phone,
+      avatar: data.avatar,
       role: data.role,
+      createdAt: data.createdAt,
     };
     setUser(normalized);
   };
@@ -79,9 +92,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: data.id || data._id,
       name: data.name,
       email: data.email,
+      phone: data.phone,
+      avatar: data.avatar,
       role: data.role,
+      createdAt: data.createdAt,
     };
     setUser(normalized);
+  };
+
+  const updateUser = (data: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...data });
+    }
   };
 
   const logout = async () => {
@@ -99,9 +121,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       login,
       register,
+      updateUser,
       logout,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin',
+      isLoading,
     }}>
       {children}
     </AuthContext.Provider>

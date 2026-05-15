@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, User, Menu, X, Search, Sun, Moon, Heart, Home, Leaf } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +17,31 @@ export const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const { wishlist } = useWishlist();
   const { isAuthenticated } = useAuth();
+  const sideMenuRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap for mobile menu
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const menu = sideMenuRef.current;
+    if (!menu) return;
+
+    const focusableSel = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const firstFocusable = menu.querySelector<HTMLElement>(focusableSel);
+    firstFocusable?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusables = menu.querySelectorAll<HTMLElement>(focusableSel);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+
+    menu.addEventListener('keydown', handleKeyDown);
+    return () => menu.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
@@ -120,6 +145,7 @@ export const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
             />
             <motion.div 
+              ref={sideMenuRef}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}

@@ -19,6 +19,8 @@ export const authUser = asyncHandler(async (req: Request, res: Response) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
       role: user.role,
     });
   } else {
@@ -57,6 +59,8 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
       id: user.id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
       role: user.role,
     });
   } else {
@@ -82,12 +86,53 @@ export const getUserProfile = asyncHandler(async (req: any, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
+      avatar: true,
       role: true,
+      createdAt: true,
     }
   });
 
   if (user) {
     res.json(user);
+  } else {
+    res.status(404);
+    throw new Error('Không tìm thấy người dùng');
+  }
+});
+
+// @desc    Update user profile
+export const updateUserProfile = asyncHandler(async (req: any, res: Response) => {
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+  if (user) {
+    const { name, email, phone, avatar, password } = req.body;
+    
+    const updateData: any = {
+      name: name || user.name,
+      email: email || user.email,
+      phone: phone || user.phone,
+      avatar: avatar || user.avatar,
+    };
+
+    if (password) {
+      updateData.password = await hashPassword(password);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        role: true,
+      }
+    });
+
+    res.json(updatedUser);
   } else {
     res.status(404);
     throw new Error('Không tìm thấy người dùng');
@@ -101,6 +146,8 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
       id: true,
       name: true,
       email: true,
+      phone: true,
+      avatar: true,
       role: true,
       createdAt: true
     }
@@ -134,7 +181,7 @@ export const updateUserRole = asyncHandler(async (req: Request, res: Response) =
     const updatedUser = await prisma.user.update({
       where: { id: req.params.id as string },
       data: { role },
-      select: { id: true, name: true, email: true, role: true }
+      select: { id: true, name: true, email: true, phone: true, avatar: true, role: true }
     });
     res.json(updatedUser);
   } else {

@@ -13,7 +13,6 @@ const AdminPanel: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
@@ -27,11 +26,11 @@ const AdminPanel: React.FC = () => {
     { to: '/admin/consultations', label: 'Tư vấn', icon: MessageSquare },
     { to: '/admin/reports', label: 'Báo cáo', icon: BarChart3 },
     { to: '/admin/news', label: 'Tin tức', icon: Newspaper },
+    { to: '/admin/comments', label: 'Bình luận', icon: MessageSquare },
     { to: '/admin/users', label: 'Người dùng', icon: User },
     { to: '/admin/settings', label: 'Cài đặt', icon: Settings },
   ];
 
-  // Get breadcrumb from current path
   const getBreadcrumb = () => {
     const path = location.pathname.replace('/admin', '').replace(/^\//, '');
     if (!path) return 'Tổng quan';
@@ -40,127 +39,110 @@ const AdminPanel: React.FC = () => {
   };
 
   const SidebarContent = () => (
-    <>
-      <div className={`p-8 border-b border-black/5 ${sidebarOpen ? '' : 'px-4'}`}>
-        <Link to="/" className="group flex items-center gap-3">
-          <div className="w-11 h-11 bg-ink text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-105 transition-transform flex-shrink-0">H</div>
+    <div className="flex flex-col h-full bg-slate-900 text-slate-300">
+      <div className={`p-6 border-b border-slate-800 ${sidebarOpen ? '' : 'px-4'}`}>
+        <Link to="/" className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-sage text-white rounded-lg flex items-center justify-center font-bold text-xl flex-shrink-0">H</div>
           {sidebarOpen && (
-            <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-              <h2 className="text-xl font-bold tracking-tight text-sage uppercase leading-tight">
-                HerbSpaLab
-              </h2>
-              <p className="text-[9px] font-black uppercase tracking-[0.25em] text-mint mt-0.5 opacity-80">Administration</p>
+            <div>
+              <h2 className="text-lg font-bold text-white leading-tight">HerbSpa</h2>
+              <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Admin Center</p>
             </div>
           )}
         </Link>
       </div>
 
-      <nav className={`flex-1 overflow-y-auto py-6 space-y-1 scroll-custom ${sidebarOpen ? 'px-4' : 'px-2'}`}>
+      <nav className={`flex-1 overflow-y-auto py-6 space-y-1 ${sidebarOpen ? 'px-4' : 'px-2'}`}>
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.end}
             className={({ isActive }) => `
-              flex items-center ${sidebarOpen ? 'justify-between px-5 py-3.5' : 'justify-center px-2 py-3.5'} rounded-xl font-bold transition-all duration-300 group
+              flex items-center ${sidebarOpen ? 'justify-between px-4 py-3' : 'justify-center px-2 py-3'} rounded-lg font-medium transition-colors
               ${isActive
-                ? 'bg-mint/10 text-mint shadow-sm'
-                : 'text-sage/40 hover:bg-gray-50 hover:text-ink hover:opacity-100'}
+                ? 'bg-sage text-white'
+                : 'hover:bg-slate-800 hover:text-white'}
             `}
             title={!sidebarOpen ? item.label : undefined}
           >
-            {({ isActive }) => (
-              <>
-                <div className="flex items-center gap-3">
-                  <item.icon className={`w-[18px] h-[18px] transition-transform duration-300 group-hover:scale-110 flex-shrink-0`} />
-                  {sidebarOpen && (
-                    <span className="text-[11px] tracking-[0.15em] uppercase font-black">{item.label}</span>
-                  )}
-                </div>
-                {sidebarOpen && (
-                  <ChevronRight className={`w-3.5 h-3.5 transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`} />
-                )}
-              </>
-            )}
+            <div className="flex items-center gap-3">
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="text-sm">{item.label}</span>}
+            </div>
           </NavLink>
         ))}
       </nav>
 
-      <div className={`p-4 mt-auto border-t border-black/5 ${sidebarOpen ? '' : 'px-2'}`}>
+      <div className={`p-4 border-t border-slate-800 ${sidebarOpen ? '' : 'px-2'}`}>
         {sidebarOpen ? (
-          <div className="bg-gray-50 rounded-2xl p-4 border border-black/5">
+          <div className="bg-slate-800 rounded-lg p-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white border border-black/5 flex items-center justify-center font-bold text-mint shadow-sm text-base flex-shrink-0">A</div>
+              <div className="w-8 h-8 rounded bg-slate-700 flex items-center justify-center font-bold text-white text-xs shrink-0">A</div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-black text-sage truncate uppercase tracking-[0.15em]">Quản trị viên</p>
-                <button onClick={logout} className="text-[9px] text-sage/40 hover:text-red-500 font-bold uppercase tracking-[0.1em] transition-colors flex items-center gap-1.5 mt-0.5">
-                  <LogOut className="w-3 h-3" /> Đăng xuất
+                <p className="text-xs font-bold text-white truncate">Administrator</p>
+                <button onClick={logout} className="text-[10px] text-slate-400 hover:text-red-400 font-medium flex items-center gap-1.5 mt-0.5">
+                  <LogOut className="w-3 h-3" /> Thoát
                 </button>
               </div>
             </div>
           </div>
         ) : (
-          <button onClick={logout} title="Đăng xuất" className="w-full p-3 flex items-center justify-center text-sage/30 hover:text-red-500 rounded-xl transition-all hover:bg-red-50">
-            <LogOut className="w-[18px] h-[18px]" />
+          <button onClick={logout} title="Đăng xuất" className="w-full p-3 flex items-center justify-center text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800">
+            <LogOut className="w-5 h-5" />
           </button>
         )}
       </div>
-    </>
+    </div>
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50/80 font-sans text-sage">
-      {/* Mobile Overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
-      )}
-
+    <div className="flex min-h-screen bg-gray-100 font-sans text-gray-900">
       {/* Mobile Sidebar */}
-      <aside className={`fixed top-0 left-0 h-screen w-72 bg-white flex flex-col z-50 shadow-2xl transform transition-transform duration-300 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="absolute top-4 right-4">
-          <button onClick={() => setMobileOpen(false)} className="p-2 text-sage/40 hover:text-sage rounded-xl transition-colors">
-            <X className="w-5 h-5" />
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
+      )}
+      <aside className={`fixed top-0 left-0 h-screen w-64 bg-slate-900 z-50 transform transition-transform duration-300 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="absolute top-4 right-4 lg:hidden">
+          <button onClick={() => setMobileOpen(false)} className="p-2 text-slate-400 hover:text-white">
+            <X className="w-6 h-6" />
           </button>
         </div>
         <SidebarContent />
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className={`hidden lg:flex ${sidebarOpen ? 'w-64' : 'w-[72px]'} bg-white flex-col sticky top-0 h-screen z-30 shadow-[4px_0_20px_rgba(0,0,0,0.02)] border-r border-black/5 flex-shrink-0 transition-all duration-300`}>
+      <aside className={`hidden lg:flex ${sidebarOpen ? 'w-64' : 'w-20'} sticky top-0 h-screen z-30 transition-all duration-300`}>
         <SidebarContent />
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
-        <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-black/5 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-20">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20">
           <div className="flex items-center gap-4">
-            {/* Mobile Hamburger */}
-            <button onClick={() => setMobileOpen(true)} className="p-2 text-sage/40 hover:text-sage rounded-xl transition-colors lg:hidden">
+            <button onClick={() => setMobileOpen(true)} className="p-2 text-gray-500 hover:text-gray-900 lg:hidden">
+              <Menu className="w-6 h-6" />
+            </button>
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden lg:block p-2 text-gray-400 hover:text-gray-900">
               <Menu className="w-5 h-5" />
             </button>
-            {/* Desktop Toggle */}
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden lg:flex p-2 text-sage/30 hover:text-sage rounded-xl transition-colors">
-              <Menu className="w-4 h-4" />
-            </button>
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em]">
-              <span className="text-sage/30">Admin</span>
-              <ChevronRight className="w-3 h-3 text-sage/20" />
-              <span className="text-sage">{getBreadcrumb()}</span>
+            <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+              <span className="hidden sm:inline">Quản trị</span>
+              <ChevronRight className="w-3 h-3 text-gray-300 hidden sm:inline" />
+              <span className="text-gray-900 font-bold">{getBreadcrumb()}</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="relative p-2 text-sage/30 hover:text-sage rounded-xl transition-colors hover:bg-gray-50">
-              <Bell className="w-[18px] h-[18px]" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full"></span>
+          <div className="flex items-center gap-4">
+            <button className="relative p-2 text-gray-400 hover:text-gray-900 transition-colors">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-            <div className="w-8 h-8 rounded-lg bg-mint/10 text-mint flex items-center justify-center font-bold text-sm border border-mint/10">A</div>
+            <div className="w-8 h-8 rounded bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-sm">A</div>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto scroll-custom bg-transparent">
-          <div className="max-w-[1600px] mx-auto">
+        <main className="flex-1 p-6 lg:p-10">
+          <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </main>

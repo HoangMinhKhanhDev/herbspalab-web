@@ -48,15 +48,19 @@ const UserManager: React.FC = () => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <span className="px-3 py-1 bg-gold/10 text-gold rounded-full text-[9px] font-bold uppercase tracking-wider border border-gold/20">Admin</span>;
+        return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-md text-[10px] font-bold uppercase tracking-wider">Admin</span>;
       case 'staff':
-        return <span className="px-3 py-1 bg-blue-50 text-blue-500 rounded-full text-[9px] font-bold uppercase tracking-wider border border-blue-100">Staff</span>;
+        return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-[10px] font-bold uppercase tracking-wider">Staff</span>;
       default:
-        return <span className="px-3 py-1 bg-gray-50 text-gray-400 rounded-full text-[9px] font-bold uppercase tracking-wider border border-gray-100">Customer</span>;
+        return <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider">Customer</span>;
     }
   };
 
-  if (loading) return <div className="p-20 text-center font-display italic text-sage/60">Đang đồng bộ cơ sở dữ liệu nhân sự...</div>;
+  if (loading) return (
+    <div className="p-20 text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto"></div>
+    </div>
+  );
 
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -64,67 +68,61 @@ const UserManager: React.FC = () => {
   );
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-8 pt-4">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 text-gold font-bold text-[11px] uppercase tracking-[0.3em] mb-2">
-            <User className="w-4 h-4" />
-            Access Management & Governance
-          </div>
-          <h1 className="text-5xl font-display italic text-sage leading-tight tracking-tight">Quản lý Người dùng</h1>
-          <p className="text-sage/40 text-[12px] font-bold uppercase tracking-[0.2em] mt-2">Quản trị nhân sự, phân quyền & Bảo mật tài khoản</p>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý Người dùng</h1>
+          <p className="text-sm text-gray-500">Quản trị nhân sự, phân quyền và bảo mật tài khoản</p>
         </div>
-        <div className="w-full sm:w-96">
-          <div className="relative group">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-sage/30 group-focus-within:text-gold transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Tìm kiếm theo tên hoặc email..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-16 pr-8 py-4.5 rounded-[2rem] bg-white border border-black/5 focus:border-gold outline-none text-[15px] transition-all shadow-sm text-sage placeholder:text-sage/20 font-medium"
-            />
-          </div>
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Tìm theo tên hoặc email..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-sage outline-none" 
+          />
         </div>
       </div>
 
-      <div className="bg-white rounded-[3rem] border border-black/5 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-50/50 text-sage/40 text-[10px] font-bold uppercase tracking-[0.2em]">
-                <th className="px-10 py-6">Định danh người dùng</th>
-                <th className="px-10 py-6">Phân quyền</th>
-                <th className="px-10 py-6">Ngày tham gia</th>
-                <th className="px-10 py-6 text-right">Điều chỉnh</th>
+              <tr className="bg-gray-50 border-b border-gray-200 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-4">Người dùng</th>
+                <th className="px-6 py-4">Phân quyền</th>
+                <th className="px-6 py-4">Ngày tham gia</th>
+                <th className="px-6 py-4 text-right">Hành động</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-black/5">
+            <tbody className="divide-y divide-gray-200">
               {filteredUsers.map((u) => (
-                <tr key={u.id} className="group hover:bg-gray-50 transition-all">
-                  <td className="px-10 py-8">
-                    <div className="flex items-center gap-6">
-                      <div className="w-16 h-16 bg-mint/10 text-mint rounded-2xl flex items-center justify-center font-bold text-2xl border border-mint/10 shadow-sm">
+                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-gray-100 text-gray-500 rounded-lg flex items-center justify-center font-bold text-sm">
                         {u.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-bold text-sage text-xl leading-tight group-hover:text-gold transition-colors">{u.name}</div>
-                        <div className="text-[11px] text-sage/40 font-medium uppercase tracking-tight mt-1">{u.email}</div>
+                        <div className="font-bold text-gray-900 text-sm">{u.name}</div>
+                        <div className="text-xs text-gray-400">{u.email}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-10 py-8">
+                  <td className="px-6 py-4">
                     {getRoleBadge(u.role)}
                   </td>
-                  <td className="px-10 py-8 text-sm text-sage/40 font-bold uppercase tracking-widest">
+                  <td className="px-6 py-4 text-xs text-gray-500">
                     {formatDate(u.createdAt)}
                   </td>
-                  <td className="px-10 py-8 text-right">
-                    <div className="flex items-center justify-end gap-5">
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-3">
                       <select 
                         value={u.role}
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                        className="bg-gray-50 border border-black/5 rounded-xl px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest focus:border-gold outline-none text-sage cursor-pointer transition-all shadow-sm hover:bg-white"
+                        className="text-[10px] font-bold uppercase tracking-wider bg-gray-100 border-none rounded py-1 px-2 focus:ring-1 focus:ring-sage"
                       >
                         <option value="customer">Customer</option>
                         <option value="staff">Staff</option>
@@ -134,9 +132,9 @@ const UserManager: React.FC = () => {
                       {u.role !== 'admin' && (
                         <button 
                           onClick={() => handleDelete(u.id)}
-                          className="p-3.5 bg-gray-50 text-sage/20 hover:text-red-500 hover:bg-white rounded-xl transition-all border border-black/5 shadow-sm"
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                         >
-                          <Trash2 className="w-6 h-6" />
+                          <Trash2 size={16} />
                         </button>
                       )}
                     </div>
@@ -146,6 +144,11 @@ const UserManager: React.FC = () => {
             </tbody>
           </table>
         </div>
+        {filteredUsers.length === 0 && (
+          <div className="p-20 text-center text-gray-400 text-sm">
+            Không tìm thấy người dùng nào.
+          </div>
+        )}
       </div>
     </div>
   );

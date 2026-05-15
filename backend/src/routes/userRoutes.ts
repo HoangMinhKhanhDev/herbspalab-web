@@ -3,6 +3,7 @@ import {
   authUser, 
   registerUser, 
   getUserProfile, 
+  updateUserProfile,
   logoutUser,
   getUsers,
   deleteUser,
@@ -16,7 +17,9 @@ const router = Router();
 router.post('/login', validateLogin, authUser);
 router.post('/register', validateRegister, registerUser);
 router.post('/logout', logoutUser);
-router.get('/profile', protect, getUserProfile);
+router.route('/profile')
+  .get(protect, getUserProfile)
+  .put(protect, updateUserProfile);
 
 // Admin routes
 router.route('/').get(protect, admin, getUsers);

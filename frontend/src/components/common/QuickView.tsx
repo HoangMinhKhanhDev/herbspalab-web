@@ -9,6 +9,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  thumbnail?: string;
   images: { url: string }[];
   badge?: string | null;
   category?: { name: string } | null;
@@ -27,7 +28,7 @@ const QuickView = ({ product, onClose }: QuickViewProps) => {
 
   if (!product) return null;
 
-  const imgUrl = product.images?.[0]?.url || 'https://via.placeholder.com/400x500';
+  const imgUrl = product.thumbnail || product.images?.[0]?.url || 'https://via.placeholder.com/400x500';
 
   const handleAddToCart = () => {
     addToCart({

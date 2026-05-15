@@ -1,116 +1,187 @@
-import { motion } from 'framer-motion';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Clock, User } from 'lucide-react';
+import { ArrowRight, Clock, User, Search, Hash } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import LazyImage from '../components/common/LazyImage';
+import { fetchBlogs } from '../api/blogApi';
+import { formatDate } from '../utils/format';
 
 const News = () => {
-  const articles = [
-    {
-      id: 1,
-      title: "Nghệ thuật xông hơi thảo mộc: Hành trình tìm lại sự tĩnh lặng",
-      category: "LIFESTYLE",
-      date: "08/05/2026",
-      author: "Hana Nguyễn",
-      excerpt: "Khám phá bí mật đằng sau những liệu trình xông hơi cổ truyền và cách chúng giúp giải tỏa căng thẳng trong cuộc sống hiện đại.",
-      img: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1200&q=80",
-      featured: true
-    },
-    {
-      id: 2,
-      title: "5 Loại thảo mộc giúp trắng da tự nhiên",
-      category: "BEAUTY",
-      date: "07/05/2026",
-      author: "Dr. Lê Minh",
-      excerpt: "Nhân sâm, linh chi và những dược liệu quý trong việc nuôi dưỡng làn da trắng hồng rạng rỡ.",
-      img: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 3,
-      title: "Chế độ ăn uống cho làn da nhạy cảm",
-      category: "HEALTH",
-      date: "06/05/2026",
-      author: "Minh Anh",
-      excerpt: "Ăn gì và kiêng gì để bảo vệ hàng rào bảo vệ da khỏi những kích ứng từ môi trường.",
-      img: "https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 4,
-      title: "Xu hướng Skincare tối giản năm 2026",
-      category: "TRENDS",
-      date: "05/05/2026",
-      author: "Thảo Vy",
-      excerpt: "Tại sao 'Less is More' đang trở thành triết lý sống mới của những tín đồ làm đẹp toàn cầu.",
-      img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80"
-    }
-  ];
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadBlogs = async () => {
+      try {
+        const data = await fetchBlogs();
+        setArticles(data);
+      } catch (error) {
+        console.error('Error fetching blogs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadBlogs();
+  }, []);
+
+  const allTags = useMemo(() => {
+    const tags = new Set<string>();
+    articles.forEach(a => {
+      if (a.tags) {
+        a.tags.split(',').forEach((t: string) => tags.add(t.trim()));
+      }
+    });
+    return Array.from(tags).filter(Boolean);
+  }, [articles]);
+
+  const filteredArticles = useMemo(() => {
+    return articles.filter(a => {
+      const title = a.title || '';
+      const summary = a.summary || '';
+      const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            summary.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTag = selectedTag ? a.tags?.includes(selectedTag) : true;
+      return matchesSearch && matchesTag;
+    });
+  }, [articles, searchQuery, selectedTag]);
+
+  if (loading) {
+    return (
+      <div className="container py-20 text-center min-h-[50vh] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-sage border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-gray-400 text-sm font-medium">Đang tải tin tức...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const featuredArticle = filteredArticles.length > 0 && !searchQuery && !selectedTag ? filteredArticles[0] : null;
+  const regularArticles = featuredArticle ? filteredArticles.slice(1) : filteredArticles;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }} 
-      className="page editorial-news"
-    >
-      <SEO title="Editorial Magazine" description="Tạp chí phong cách sống và kiến thức chăm sóc da chuyên sâu từ HerbSpa Lab." />
+    <div className="pb-24 bg-gray-50/30">
+      <SEO title="Tin tức & Sự kiện" description="Cập nhật những tin tức mới nhất và kiến thức chăm sóc da từ HerbSpa Lab." />
       
       <div className="container">
-        <header className="editorial-header">
-          <span className="editorial-subtitle">SINCE 1992</span>
-          <h1 className="editorial-title">THE HERB JOURNAL</h1>
-          <div className="editorial-divider"></div>
+        <header className="pt-16 md:pt-24 pb-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">Tin tức & Sự kiện</h1>
+          <p className="text-gray-500 max-w-2xl mx-auto mb-10 text-lg">Chia sẻ kiến thức chăm sóc da và phong cách sống lành mạnh từ chuyên gia.</p>
+          
+          {/* Search & Filter Bar */}
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="relative">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm bài viết..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-14 pr-6 py-4 rounded-xl bg-white border border-gray-200 focus:border-sage focus:ring-1 focus:ring-sage outline-none text-base shadow-sm transition-all"
+              />
+            </div>
+            
+            {allTags.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button 
+                  onClick={() => setSelectedTag(null)}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${!selectedTag ? 'bg-sage text-white border-sage' : 'bg-white text-gray-600 border-gray-200 hover:border-sage hover:text-sage'}`}
+                >
+                  Tất cả
+                </button>
+                {allTags.map(tag => (
+                  <button 
+                    key={tag}
+                    onClick={() => setSelectedTag(tag)}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 ${selectedTag === tag ? 'bg-sage text-white border-sage' : 'bg-white text-gray-600 border-gray-200 hover:border-sage hover:text-sage'}`}
+                  >
+                    <Hash size={12} /> {tag}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Featured Article */}
-        <section className="featured-section">
-          {articles.filter(a => a.featured).map(article => (
-            <motion.div 
-              key={article.id}
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              className="featured-article"
-            >
-              <div className="featured-img-wrap">
-                <LazyImage src={article.img} alt={article.title} />
+        {featuredArticle && (
+          <section className="mb-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+              <div className="aspect-[4/3] lg:aspect-auto relative overflow-hidden group">
+                <Link to={`/news/${featuredArticle.slug}`}>
+                  <LazyImage src={featuredArticle.image || '/assets/images/blog_placeholder.png'} alt={featuredArticle.title} />
+                </Link>
               </div>
-              <div className="featured-content">
-                <span className="cat-tag">{article.category}</span>
-                <h2>{article.title}</h2>
-                <p>{article.excerpt}</p>
-                <div className="article-meta">
-                  <span><User size={14} /> {article.author}</span>
-                  <span><Clock size={14} /> {article.date}</span>
+              <div className="p-8 md:p-12 lg:p-16 flex flex-col justify-center">
+                <span className="text-sage font-bold text-xs uppercase tracking-widest mb-4">{featuredArticle.tags?.split(',')[0] || "TIN TỨC"}</span>
+                <Link to={`/news/${featuredArticle.slug}`}>
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 hover:text-sage transition-colors leading-tight">{featuredArticle.title}</h2>
+                </Link>
+                <p className="text-gray-600 mb-8 leading-relaxed line-clamp-3">{featuredArticle.summary}</p>
+                <div className="flex items-center justify-between mt-auto pt-8 border-t border-gray-100">
+                  <div className="flex items-center gap-6 text-gray-400 text-xs">
+                    <span className="flex items-center gap-2"><User size={14} /> {featuredArticle.author || "HerbSpa Lab"}</span>
+                    <span className="flex items-center gap-2"><Clock size={14} /> {formatDate(featuredArticle.createdAt)}</span>
+                  </div>
+                  <Link to={`/news/${featuredArticle.slug}`} className="flex items-center gap-2 text-sage font-bold uppercase tracking-widest text-xs">
+                    Đọc tiếp <ArrowRight size={16} />
+                  </Link>
                 </div>
-                <Link to="#" className="read-more-btn">Đọc bài viết <ArrowRight size={18} /></Link>
               </div>
-            </motion.div>
-          ))}
-        </section>
+            </div>
+          </section>
+        )}
 
         {/* Article Grid */}
-        <div className="editorial-grid">
-          {articles.filter(a => !a.featured).map((article, i) => (
-            <motion.div 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {regularArticles.map((article) => (
+            <div 
               key={article.id}
-              className={`editorial-card ${i === 1 ? 'large' : ''}`}
-              initial={{ y: 30, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow"
             >
-              <div className="card-img-wrap">
-                <LazyImage src={article.img} alt={article.title} />
+              <div className="aspect-[16/10] relative overflow-hidden">
+                <Link to={`/news/${article.slug}`}>
+                  <LazyImage src={article.image || '/assets/images/blog_placeholder.png'} alt={article.title} />
+                </Link>
+                <div className="absolute top-4 left-4 px-2 py-1 bg-white/95 text-sage text-[10px] font-bold uppercase tracking-widest rounded shadow-sm">
+                  {article.tags?.split(',')[0] || "TIN TỨC"}
+                </div>
               </div>
-              <div className="card-content">
-                <span className="cat-tag">{article.category}</span>
-                <h3>{article.title}</h3>
-                <Link to="#" className="simple-link">Tiếp tục đọc</Link>
+              <div className="p-6 flex flex-1 flex-col">
+                <Link to={`/news/${article.slug}`} className="mb-3">
+                  <h3 className="text-lg font-bold text-gray-900 hover:text-sage transition-colors leading-snug line-clamp-2">{article.title}</h3>
+                </Link>
+                <p className="text-gray-500 text-sm line-clamp-3 mb-6 leading-relaxed flex-1">{article.summary}</p>
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto text-[11px] text-gray-400">
+                  <span className="flex items-center gap-1.5"><Clock size={12} /> {formatDate(article.createdAt)}</span>
+                  <Link to={`/news/${article.slug}`} className="font-bold text-sage uppercase tracking-widest">
+                    Chi tiết
+                  </Link>
+                </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
+
+        {filteredArticles.length === 0 && !loading && (
+          <div className="text-center py-24 bg-white rounded-2xl border border-gray-100 mt-8">
+            <Search className="w-10 h-10 text-gray-200 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Không tìm thấy bài viết</h3>
+            <p className="text-gray-400 text-sm">Thử tìm kiếm với từ khóa khác.</p>
+            {(searchQuery || selectedTag) && (
+              <button 
+                onClick={() => { setSearchQuery(''); setSelectedTag(null); }}
+                className="mt-6 px-6 py-2 bg-sage text-white rounded-lg text-xs font-bold uppercase tracking-widest"
+              >
+                Xóa bộ lọc
+              </button>
+            )}
+          </div>
+        )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -36,6 +36,7 @@ interface ProductDetailData {
   price: number;
   salePrice?: number | null;
   images: ProductImage[];
+  thumbnail?: string | null;
   category?: { name: string; slug: string } | null;
   description: string;
   shortDescription?: string | null;
@@ -48,6 +49,7 @@ interface ProductDetailData {
   metaTitle?: string | null;
   metaDescription?: string | null;
   isPreorder?: boolean;
+  videoUrl?: string | null;
 }
 
 const ProductDetail = () => {
@@ -70,6 +72,10 @@ const ProductDetail = () => {
     fetchProductById(id)
       .then(res => {
         const data = res.data;
+        // Merge thumbnail into images for the gallery if it exists
+        if (data.thumbnail && !data.images.some((img: any) => img.url === data.thumbnail)) {
+          data.images = [{ url: data.thumbnail }, ...data.images];
+        }
         setProduct(data);
         if (data.variants?.length > 0) setSelectedVariant(data.variants[0]);
         setLoading(false);
@@ -87,7 +93,7 @@ const ProductDetail = () => {
       id: product.id,
       name: product.name,
       price: displayPrice,
-      image: product.images?.[0]?.url || '',
+      image: product.thumbnail || product.images?.[0]?.url || '',
       category: product.category?.name,
     }, quantity);
     setAddedFeedback(true);
@@ -103,7 +109,7 @@ const ProductDetail = () => {
         id: product.id,
         name: product.name,
         price: product.salePrice ?? product.price,
-        image: product.images?.[0]?.url || '',
+        image: product.thumbnail || product.images?.[0]?.url || '',
         category: product.category?.name,
       });
     }
@@ -296,6 +302,30 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Video Section */}
+      {product.videoUrl && (
+        <div style={{ marginTop: '5rem' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>Video Sản phẩm</h2>
+          <div style={{ maxWidth: '800px', margin: '0 auto', borderRadius: '24px', overflow: 'hidden', background: '#000', aspectVideo: '16/9' }}>
+            {product.videoUrl.startsWith('/uploads/') ? (
+              <video src={product.videoUrl} controls className="w-full h-full" style={{ width: '100%', display: 'block' }} />
+            ) : (
+              <iframe
+                width="100%"
+                height="450"
+                src={product.videoUrl.includes('youtube.com') || product.videoUrl.includes('youtu.be') 
+                  ? product.videoUrl.replace('watch?v=', 'embed/').split('&')[0] 
+                  : product.videoUrl}
+                title="Product Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Description + Reviews */}
       <div style={{ marginTop: '5rem', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '3rem' }}>

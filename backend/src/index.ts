@@ -110,7 +110,7 @@ app.use('/api/attributes', attributeRoutes);
 app.use('/api/consultations', consultationRoutes);
 
 // Serving Static Files
-const uploadsPath = path.join(__dirname, '../../../public/uploads');
+const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
 
 // Serving React Frontend

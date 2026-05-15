@@ -3,6 +3,25 @@ import asyncHandler from 'express-async-handler';
 import prisma from '../config/prisma.js';
 import { slugify } from '../utils/slugify.js';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Helper to delete files from disk
+const deleteFile = (url: string | null | undefined) => {
+  if (!url || !url.startsWith('/uploads/')) return;
+  // uploads are at the root of backend
+  const filePath = path.join(__dirname, '../../uploads', url.replace('/uploads/', ''));
+  if (fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath);
+    } catch (err) {
+      console.error(`Failed to delete file: ${filePath}`, err);
+    }
+  }
+};
 
 // @desc    Fetch all products with advanced filtering
 export const getProducts = asyncHandler(async (req: Request, res: Response) => {
@@ -119,7 +138,7 @@ export const createProduct = asyncHandler(async (req: any, res: Response) => {
     name, price, salePrice, description, shortDescription, 
     images, categoryId, stock, sku, badge, videoUrl, 
     isPreorder, isNew, metaTitle, metaDescription, tags,
-    variants 
+    variants, thumbnail, preparationTime 
   } = req.body;
 
   const slug = slugify(name);
@@ -142,6 +161,8 @@ export const createProduct = asyncHandler(async (req: any, res: Response) => {
       videoUrl,
       isPreorder: isPreorder === true || isPreorder === 'true',
       isNew: isNew === true || isNew === 'true',
+      preparationTime,
+      thumbnail,
       metaTitle,
       metaDescription,
       tags: processedTags,
@@ -178,17 +199,72 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
   const product = await prisma.product.findUnique({ where: { id: id as string } });
 
   if (product) {
+    // Strip fields that should not be updated directly via scalar data
+    // Especially relations and system fields
+    const { 
+      id: _, 
+      createdAt, 
+      updatedAt, 
+      category, 
+      images: __, 
+      variants: ___, 
+      reviews,
+      orderItems,
+      cartItems,
+      ...restCleaned 
+    } = rest;
+    
     const data: any = { 
-      ...rest,
+      name: name || restCleaned.name,
+      slug: name ? slugify(name) : restCleaned.slug,
+      sku: restCleaned.sku,
+      description: restCleaned.description,
+      shortDescription: restCleaned.shortDescription,
+      price: restCleaned.price !== undefined ? Number(restCleaned.price) : undefined,
+      salePrice: restCleaned.salePrice === '' || restCleaned.salePrice === null ? null : (restCleaned.salePrice !== undefined ? Number(restCleaned.salePrice) : undefined),
+      stock: restCleaned.stock !== undefined ? Number(restCleaned.stock) : undefined,
+      badge: restCleaned.badge,
+      videoUrl: restCleaned.videoUrl,
+      isNew: restCleaned.isNew !== undefined ? Boolean(restCleaned.isNew) : undefined,
+      isPreorder: restCleaned.isPreorder !== undefined ? Boolean(restCleaned.isPreorder) : undefined,
+      preparationTime: restCleaned.preparationTime,
+      thumbnail: restCleaned.thumbnail,
+      metaTitle: restCleaned.metaTitle,
+      metaDescription: restCleaned.metaDescription,
       tags: Array.isArray(tags) ? tags.join(',') : tags
     };
-    
-    if (name) {
-      data.name = name;
-      data.slug = slugify(name);
-    }
 
+    // Use relation syntax to be safe
+    if (restCleaned.categoryId) {
+      data.category = { connect: { id: restCleaned.categoryId } };
+    } else if (restCleaned.categoryId === '' || restCleaned.categoryId === null) {
+      data.category = { disconnect: true };
+    }
+    
     if (images) {
+      // Get existing images to cleanup
+      const existingProduct = await prisma.product.findUnique({ 
+        where: { id: id as string },
+        include: { images: true }
+      }) as any;
+
+      // Cleanup images that are no longer in the list
+      existingProduct?.images.forEach((img: any) => {
+        if (!images.includes(img.url)) {
+          deleteFile(img.url);
+        }
+      });
+
+      // Cleanup old thumbnail if changed
+      if (restCleaned.thumbnail !== undefined && existingProduct?.thumbnail && existingProduct.thumbnail !== restCleaned.thumbnail) {
+        deleteFile(existingProduct.thumbnail);
+      }
+
+      // Cleanup old video if changed
+      if (restCleaned.videoUrl !== undefined && existingProduct?.videoUrl && existingProduct.videoUrl !== restCleaned.videoUrl) {
+        deleteFile(existingProduct.videoUrl);
+      }
+
       await prisma.productImage.deleteMany({ where: { productId: id as string } });
       data.images = {
         create: images.map((img: string) => ({ url: img }))
@@ -203,7 +279,7 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
           price: Number(v.price),
           stock: Number(v.stock),
           options: {
-            create: v.optionIds.map((optId: string) => ({
+            create: (v.optionIds || []).map((optId: string) => ({
               attributeValueId: optId
             }))
           }
@@ -226,11 +302,21 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
 
 // @desc    Delete a product (Admin)
 export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {
-  const product = await prisma.product.findUnique({ where: { id: req.params.id as string } });
-  
+  const { id } = req.params;
+
+  const product = await prisma.product.findUnique({ 
+    where: { id: id as string },
+    include: { images: true }
+  }) as any;
+
   if (product) {
-    await prisma.product.delete({ where: { id: req.params.id as string } });
-    res.json({ message: 'Sản phẩm đã bị xóa' });
+    // Delete files from disk
+    deleteFile(product.thumbnail);
+    deleteFile(product.videoUrl);
+    product.images.forEach((img: any) => deleteFile(img.url));
+
+    await prisma.product.delete({ where: { id: id as string } });
+    res.json({ message: 'Đã xóa sản phẩm và tệp tin liên quan' });
   } else {
     res.status(404);
     throw new Error('Không tìm thấy sản phẩm');
