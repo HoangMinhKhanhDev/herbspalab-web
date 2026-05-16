@@ -44,27 +44,26 @@ jobs:
           echo "Dist directory contents:"
           ls -la dist/
 
-      # 3. Deploy to Hostinger via FTP
+      # 3. Consolidate build outputs
+      - name: Consolidate Build Outputs
+        run: |
+          node scripts/consolidate-build.js
+          # Verify build directory was created
+          if [ ! -d "build" ]; then
+            echo "ERROR: build directory not found after consolidation"
+            ls -la
+            exit 1
+          fi
+          echo "Build directory contents:"
+          ls -la build/
+
+      # 4. Deploy to Hostinger via FTP
       - name: Upload to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          # We deploy the whole root or specific folders. 
-          # For a clean deploy, we usually push backend/ (which now serves frontend/dist)
-          local-dir: ./
+          # Deploy from consolidated build directory
+          local-dir: build/
           server-dir: public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/src/**
-            **/*.ts
-            **/tsconfig.json
-            **/frontend/node_modules/**
-            **/frontend/src/**
-            **/backend/src/**
-            .env
-            backend/.env
-            frontend/.env

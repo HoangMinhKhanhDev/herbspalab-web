@@ -1,0 +1,1 @@
+var e=e=>e==null?`0 ₫`:new Intl.NumberFormat(`vi-VN`,{style:`currency`,currency:`VND`}).format(e),t=e=>{if(!e)return`Chưa cập nhật`;try{let t=new Date(e);return isNaN(t.getTime())?`Ngày không hợp lệ`:new Intl.DateTimeFormat(`vi-VN`,{year:`numeric`,month:`long`,day:`numeric`}).format(t)}catch{return`Lỗi định dạng`}};export{e as n,t};
