@@ -13,10 +13,9 @@ interface SidebarContentProps {
   setSidebarOpen: (open: boolean) => void;
   navItems: any[];
   logout: () => void;
-  user: any;
 }
 
-const SidebarContent: React.FC<SidebarContentProps> = ({ sidebarOpen, setSidebarOpen, navItems, logout, user }) => (
+const SidebarContent: React.FC<SidebarContentProps> = ({ sidebarOpen, setSidebarOpen, navItems, logout }) => (
   <div className="flex flex-col h-full bg-[#1a2420] text-gray-400">
     {/* Brand Header */}
     <div className={`h-20 flex items-center border-b border-white/5 ${sidebarOpen ? 'px-4' : 'px-3'} gap-2`}>
@@ -133,7 +132,7 @@ const AdminPanel: React.FC = () => {
     { to: '/admin/comments', label: 'Bình luận', icon: MessageSquare },
     { group: 'CHĂM SÓC' },
     { to: '/admin/consultations', label: 'Tư vấn', icon: MessageSquare },
-    { to: '/admin/users', label: 'Khách hàng', icon: User },
+    { to: '/admin/users', label: 'Người dùng', icon: User },
     { group: 'HỆ THỐNG' },
     { to: '/admin/reports', label: 'Báo cáo', icon: BarChart3 },
     { to: '/admin/settings', label: 'Cấu hình', icon: Settings },
@@ -155,12 +154,11 @@ const AdminPanel: React.FC = () => {
           sidebarOpen ? 'w-[300px]' : 'w-[100px]'
         }`}
       >
-        <SidebarContent 
-          sidebarOpen={sidebarOpen} 
-          setSidebarOpen={setSidebarOpen} 
-          navItems={navItems} 
-          logout={logout} 
-          user={user} 
+        <SidebarContent
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          navItems={navItems}
+          logout={logout}
         />
       </aside>
 
@@ -187,12 +185,11 @@ const AdminPanel: React.FC = () => {
               </button>
            </div>
            <div className="flex-1 overflow-y-auto">
-              <SidebarContent 
-                sidebarOpen={true} 
-                setSidebarOpen={() => setMobileOpen(false)} 
-                navItems={navItems} 
-                logout={logout} 
-                user={user} 
+              <SidebarContent
+                sidebarOpen={true}
+                setSidebarOpen={() => setMobileOpen(false)}
+                navItems={navItems}
+                logout={logout}
               />
            </div>
         </div>

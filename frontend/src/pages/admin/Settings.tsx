@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Shield, Globe, Palette, Database, Save, Loader2, ChevronRight, Zap, RefreshCcw } from 'lucide-react';
+import { Shield, Globe, Palette, Database, Save, Loader2, Zap } from 'lucide-react';
 import { adminFetchSettings, adminUpdateSettings } from '../../api/adminApi';
 import toast from 'react-hot-toast';
 

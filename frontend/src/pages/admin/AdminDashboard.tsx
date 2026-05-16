@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, Users, ShoppingBag, MessageSquare, DollarSign,
-  Star, RefreshCw, Clock, ChevronRight, Eye, Package, Calendar, ArrowRight
+  RefreshCw, Clock, ChevronRight, Eye, Calendar, ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAdminStats } from '../../api/adminApi';

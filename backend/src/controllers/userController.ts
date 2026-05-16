@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler';
 import prisma from '../config/prisma.js';
 import generateToken from '../utils/generateToken.js';
 import { hashPassword, comparePassword } from '../utils/password.js';
+import crypto from 'crypto';
 
 // @desc    Auth user & get token
 export const authUser = asyncHandler(async (req: Request, res: Response) => {
@@ -33,6 +34,20 @@ export const authUser = asyncHandler(async (req: Request, res: Response) => {
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
+  // Email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400);
+    throw new Error('Email không đúng định dạng');
+  }
+
+  // Check if email domain exists (basic validation)
+  const domain = email.split('@')[1];
+  if (!domain || domain.length < 3) {
+    res.status(400);
+    throw new Error('Email không hợp lệ');
+  }
+
   const userExists = await prisma.user.findUnique({
     where: { email }
   });
@@ -42,6 +57,10 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
     throw new Error('Người dùng đã tồn tại');
   }
 
+  // Generate verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
   const hashedPassword = await hashPassword(password);
 
   const user = await prisma.user.create({
@@ -49,6 +68,8 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
       name,
       email,
       password: hashedPassword,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires,
     }
   });
 
@@ -62,11 +83,48 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
       phone: user.phone,
       avatar: user.avatar,
       role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      message: 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.',
     });
   } else {
     res.status(400);
     throw new Error('Dữ liệu không hợp lệ');
   }
+});
+
+// @desc    Verify email
+export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = req.params;
+
+  if (!token || typeof token !== 'string') {
+    res.status(400);
+    throw new Error('Token không hợp lệ');
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      emailVerificationToken: token as string,
+      emailVerificationExpires: {
+        gt: new Date()
+      }
+    }
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error('Token không hợp lệ hoặc đã hết hạn');
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isEmailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null
+    }
+  });
+
+  res.json({ message: 'Email đã được xác nhận thành công' });
 });
 
 // @desc    Logout user & clear cookie
@@ -88,6 +146,8 @@ export const getUserProfile = asyncHandler(async (req: any, res: Response) => {
       email: true,
       phone: true,
       avatar: true,
+      gender: true,
+      birthday: true,
       role: true,
       createdAt: true,
     }
@@ -106,13 +166,15 @@ export const updateUserProfile = asyncHandler(async (req: any, res: Response) =>
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 
   if (user) {
-    const { name, email, phone, avatar, password } = req.body;
+    const { name, email, phone, avatar, gender, birthday, password } = req.body;
     
     const updateData: any = {
       name: name || user.name,
       email: email || user.email,
       phone: phone || user.phone,
       avatar: avatar || user.avatar,
+      gender: gender || user.gender,
+      birthday: birthday ? new Date(birthday) : user.birthday,
     };
 
     if (password) {
@@ -128,6 +190,8 @@ export const updateUserProfile = asyncHandler(async (req: any, res: Response) =>
         email: true,
         phone: true,
         avatar: true,
+        gender: true,
+        birthday: true,
         role: true,
       }
     });

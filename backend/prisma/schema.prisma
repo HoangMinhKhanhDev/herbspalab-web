@@ -8,18 +8,39 @@ datasource db {
 }
 
 model User {
+  id                   String    @id @default(uuid())
+  name                 String
+  email                String    @unique
+  password             String
+  phone                String?
+  avatar               String?
+  gender               String?   // Nam, Nữ, Khác
+  birthday             DateTime?
+  role                 String    @default("customer")
+  isEmailVerified      Boolean   @default(false)
+  emailVerificationToken String?
+  emailVerificationExpires DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  orders               Order[]
+  reviews              Review[]
+  cart                 Cart?
+  addresses            Address[]
+}
+
+model Address {
   id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  phone     String?
-  avatar    String?
-  role      String   @default("customer")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  phone     String
+  province  String
+  district  String
+  ward      String
+  detail    String
+  isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  orders    Order[]
-  reviews   Review[]
-  cart      Cart?
 }
 
 model Category {
@@ -228,6 +249,7 @@ model Comment {
   id        String   @id @default(uuid())
   name      String
   email     String?
+  avatar    String?
   content   String
   status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
   blogId    String

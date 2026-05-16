@@ -19,7 +19,7 @@ router.post('/', protect, admin, upload.array('files', 10), processImage, (req: 
 });
 
 // @desc    Upload single file
-router.post('/single', protect, admin, upload.single('file'), processImage, (req: any, res) => {
+router.post('/single', protect, upload.single('file'), processImage, (req: any, res) => {
   if (!req.file) {
     res.status(400);
     throw new Error('Vui lòng chọn file để tải lên');

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Folder, ChevronRight, ChevronDown, Upload, Plus, Edit, Trash2, X, 
-  Image as ImageIcon, Database, CheckCircle2, Info, Layers, 
-  Globe, Layout, ChevronLeft, Loader2, Sparkles, Send
+import {
+  Folder, ChevronRight, ChevronDown, Plus, Trash2, X,
+  Image as ImageIcon, Layers,
+  Globe, Layout, Loader2, Sparkles, Send
 } from 'lucide-react';
 import { getCategories, createCategory, updateCategory, deleteCategory, adminUploadSingle } from '../../api/adminApi';
 import toast from 'react-hot-toast';

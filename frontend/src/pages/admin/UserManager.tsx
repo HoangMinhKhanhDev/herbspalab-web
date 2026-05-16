@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Trash2, Search, Shield, UserCheck, Users, MoreVertical, ChevronRight, Mail, Calendar } from 'lucide-react';
+import { User, Trash2, Search, Shield, UserCheck, Users, ChevronRight, Mail, Calendar } from 'lucide-react';
 import { adminFetchUsers, adminUpdateUserRole, adminDeleteUser } from '../../api/adminApi';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/format';
@@ -132,8 +132,12 @@ const UserManager: React.FC = () => {
                 <tr key={u.id} className="group hover:bg-[#f8f9f8] transition-all">
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-[#1a2420] text-white rounded-[1rem] flex items-center justify-center font-black text-[15px] shadow-lg shadow-[#1a2420]/10 group-hover:scale-110 transition-transform">
-                        {u.name.charAt(0).toUpperCase()}
+                      <div className="w-12 h-12 bg-[#1a2420] text-white rounded-[1rem] flex items-center justify-center font-black text-[15px] shadow-lg shadow-[#1a2420]/10 group-hover:scale-110 transition-transform overflow-hidden">
+                        {u.avatar ? (
+                          <img src={u.avatar} alt={u.name} className="w-full h-full object-cover" />
+                        ) : (
+                          u.name.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <div>
                         <div className="font-black text-gray-900 text-[15px] tracking-tight group-hover:text-sage transition-colors">{u.name}</div>
@@ -190,8 +194,12 @@ const UserManager: React.FC = () => {
            <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
                  {users.slice(0, 5).map((u, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center text-[10px] font-black text-sage uppercase">
-                       {u.name.charAt(0)}
+                    <div key={i} className="w-8 h-8 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center overflow-hidden">
+                       {u.avatar ? (
+                         <img src={u.avatar} alt={u.name} className="w-full h-full object-cover" />
+                       ) : (
+                         <span className="text-[10px] font-black text-sage uppercase">{u.name.charAt(0)}</span>
+                       )}
                     </div>
                  ))}
                  {users.length > 5 && (

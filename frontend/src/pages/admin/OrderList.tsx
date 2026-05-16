@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Eye, Clock, CheckCircle, Truck, XCircle, ClipboardList, Search, Trash2, Filter, MoreVertical, Package, ChevronRight } from 'lucide-react';
+import { Clock, CheckCircle, Truck, XCircle, ClipboardList, Search, Trash2, Package, ChevronRight } from 'lucide-react';
 import { getOrders, updateOrderStatus, adminDeleteOrder } from '../../api/adminApi';
 import { formatPrice, formatDate } from '../../utils/format';
 import toast from 'react-hot-toast';

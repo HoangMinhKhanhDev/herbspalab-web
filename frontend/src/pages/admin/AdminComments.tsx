@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle, XCircle, Trash2, MessageSquare, 
-  Search, Filter, ExternalLink, Calendar
+import {
+  CheckCircle, XCircle, Trash2, Filter, ExternalLink, Calendar, Search
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminFetchComments, adminUpdateCommentStatus, adminDeleteComment } from '../../api/adminApi';

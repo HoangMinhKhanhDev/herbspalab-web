@@ -12,6 +12,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (password !== confirmPassword) {
       return setError('Mật khẩu xác nhận không khớp');
@@ -26,8 +28,15 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await register(name, email, password);
-      navigate('/');
+      const response = await register(name, email, password);
+      // Check if backend returned a verification message
+      if (response?.message) {
+        setSuccess(response.message);
+        // Still navigate but the message will show the verification requirement
+        setTimeout(() => navigate('/'), 5000);
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Đăng ký thất bại');
     } finally {
@@ -48,13 +57,25 @@ const Register = () => {
         </div>
 
         {error && (
-          <motion.div 
+          <motion.div
             className="auth-error"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
           >
             <AlertCircle size={18} />
             <span>{error}</span>
+          </motion.div>
+        )}
+
+        {success && (
+          <motion.div
+            className="auth-success"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            style={{ background: '#dcfce7', color: '#166534', padding: '12px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <AlertCircle size={18} />
+            <span>{success}</span>
           </motion.div>
         )}
 

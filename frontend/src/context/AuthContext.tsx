@@ -11,12 +11,14 @@ export interface User {
   avatar?: string;
   role: 'customer' | 'admin';
   createdAt?: string;
+  gender?: string;
+  birthday?: string | Date;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, pass: string) => Promise<void>;
-  register: (name: string, email: string, pass: string) => Promise<void>;
+  register: (name: string, email: string, pass: string) => Promise<any>;
   updateUser: (data: Partial<User>) => void;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -96,8 +98,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       avatar: data.avatar,
       role: data.role,
       createdAt: data.createdAt,
+      gender: data.gender,
+      birthday: data.birthday,
     };
     setUser(normalized);
+    return data;
   };
 
   const updateUser = (data: Partial<User>) => {

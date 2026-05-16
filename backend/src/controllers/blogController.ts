@@ -116,13 +116,14 @@ export const deleteBlog = asyncHandler(async (req: Request, res: Response) => {
 
 // @desc    Add a comment to a blog
 export const addComment = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, content } = req.body;
+  const { name, email, avatar, content } = req.body;
   const blog = await prisma.blog.findUnique({ where: { id: req.params.id as string } });
   if (blog) {
     const comment = await prisma.comment.create({
       data: {
         name,
         email,
+        avatar: avatar || null,
         content,
         blogId: blog.id,
         status: 'PENDING'

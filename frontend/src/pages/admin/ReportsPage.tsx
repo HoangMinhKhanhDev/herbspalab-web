@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { BarChart3, Users, Globe, Smartphone, Monitor, Tablet, TrendingUp, RefreshCw } from 'lucide-react';
+import { Users, Globe, Smartphone, Monitor, Tablet, TrendingUp, RefreshCw } from 'lucide-react';
 import { getTrafficReport, getCustomerReport } from '../../api/adminApi';
 import { formatPrice } from '../../utils/format';
 import toast from 'react-hot-toast';

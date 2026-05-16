@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Save, Image as ImageIcon, Globe, Link as LinkIcon, 
-  FileText, Send, Eye, CheckCircle2, 
-  AlertCircle, User, Tag, Sparkles, Loader2, Info, Upload, Trash2, Globe2
+import {
+  Save, Image as ImageIcon, Link as LinkIcon,
+  FileText, Send, CheckCircle2,
+  User, Loader2, Info, Upload, Globe2
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';

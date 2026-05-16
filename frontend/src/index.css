@@ -99,15 +99,78 @@
 
 /* ─── Dark Theme ─── */
 [data-theme='dark'] {
-  --primary: #F5F1E9;
-  --secondary: #D4AF37;
-  --accent: #1A241B;
-  --bg: #0F1410;
-  --text: #F5F1E9;
-  --text-muted: #A0A0A0;
-  --border: #2C3E2E;
-  --white: #1A241B;
-  --card-bg: #1A241B;
+  /* Core Organic Colors - Dark Mode */
+  --clr-mint: hsl(158, 39%, 60%);
+  --clr-mint-dark: hsl(158, 39%, 50%);
+  --clr-mint-light: hsl(158, 39%, 15%);
+  --clr-sage: hsl(158, 25%, 85%);
+  --clr-sage-dark: hsl(158, 25%, 75%);
+  --clr-sage-light: hsl(158, 20%, 20%);
+  --clr-gold: hsl(45, 35%, 70%);
+  --clr-gold-light: hsl(45, 35%, 25%);
+  --clr-cream: #1e1e1e;
+  --clr-canvas: #121212;
+  --clr-ink: #E0E0E0;
+  --clr-ink-light: #A0A0A0;
+
+  /* Legacy Compatibility - Dark Mode */
+  --primary: var(--clr-sage);
+  --primary-light: var(--clr-mint);
+  --secondary: var(--clr-gold);
+  --secondary-light: var(--clr-gold-light);
+  --bg: var(--clr-cream);
+  --bg-creme: var(--clr-cream);
+  --white: #1e1e1e;
+  --text: var(--clr-ink);
+  --text-dark: var(--clr-ink);
+  --text-muted: var(--clr-ink-light);
+  --border: #333333;
+  --danger: #ff6b6b;
+  --accent: var(--clr-sage-light);
+  --card-bg: #1e1e1e;
+
+  /* Dark Mode Specific */
+  --glass-bg: rgba(30, 30, 30, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Auto-detect system preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    /* Core Organic Colors - Dark Mode */
+    --clr-mint: hsl(158, 39%, 60%);
+    --clr-mint-dark: hsl(158, 39%, 50%);
+    --clr-mint-light: hsl(158, 39%, 15%);
+    --clr-sage: hsl(158, 25%, 85%);
+    --clr-sage-dark: hsl(158, 25%, 75%);
+    --clr-sage-light: hsl(158, 20%, 20%);
+    --clr-gold: hsl(45, 35%, 70%);
+    --clr-gold-light: hsl(45, 35%, 25%);
+    --clr-cream: #1e1e1e;
+    --clr-canvas: #121212;
+    --clr-ink: #E0E0E0;
+    --clr-ink-light: #A0A0A0;
+
+    /* Legacy Compatibility - Dark Mode */
+    --primary: var(--clr-sage);
+    --primary-light: var(--clr-mint);
+    --secondary: var(--clr-gold);
+    --secondary-light: var(--clr-gold-light);
+    --bg: var(--clr-cream);
+    --bg-creme: var(--clr-cream);
+    --white: #1e1e1e;
+    --text: var(--clr-ink);
+    --text-dark: var(--clr-ink);
+    --text-muted: var(--clr-ink-light);
+    --border: #333333;
+    --danger: #ff6b6b;
+    --accent: var(--clr-sage-light);
+    --card-bg: #1e1e1e;
+
+    /* Dark Mode Specific */
+    --glass-bg: rgba(30, 30, 30, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.1);
+  }
 }
 
 /* ─── Base Reset ─── */
@@ -505,5 +568,185 @@ img {
   
   /* Page breaks */
   .bg-white.rounded-2xl { page-break-inside: avoid; margin-bottom: 20pt; }
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* ─── Article Prose Styling (News Detail) ─── */
+/* ═══════════════════════════════════════════════════ */
+.article-html-content {
+  font-family: var(--font-main);
+  font-size: 17px;
+  line-height: 1.8;
+  color: #374151;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.article-html-content > * + * {
+  margin-top: 1.5em;
+}
+
+.article-html-content p {
+  margin-bottom: 1.4em;
+  font-size: 17px;
+  line-height: 1.8;
+  color: #374151;
+}
+
+.article-html-content h2,
+.article-html-content h3,
+.article-html-content h4 {
+  font-family: var(--font-display);
+  color: var(--clr-ink);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 2em;
+  margin-bottom: 0.7em;
+}
+
+.article-html-content h2 {
+  font-size: 28px;
+  padding-bottom: 0.4em;
+  border-bottom: 2px solid var(--clr-mint-light);
+}
+
+.article-html-content h3 {
+  font-size: 22px;
+}
+
+.article-html-content h4 {
+  font-size: 18px;
+  font-family: var(--font-main);
+  font-weight: 700;
+}
+
+.article-html-content strong,
+.article-html-content b {
+  color: var(--clr-ink);
+  font-weight: 700;
+}
+
+.article-html-content em,
+.article-html-content i {
+  font-style: italic;
+}
+
+.article-html-content a {
+  color: var(--clr-mint);
+  text-decoration: underline;
+  text-decoration-color: var(--clr-mint-light);
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+}
+.article-html-content a:hover {
+  color: var(--clr-mint-dark);
+  text-decoration-color: var(--clr-mint);
+}
+
+.article-html-content ul,
+.article-html-content ol {
+  margin: 1.4em 0;
+  padding-left: 1.6em;
+}
+.article-html-content li {
+  margin-bottom: 0.7em;
+  line-height: 1.7;
+}
+.article-html-content ul li::marker {
+  color: var(--clr-mint);
+}
+
+.article-html-content blockquote {
+  margin: 2em 0;
+  padding: 1.2em 1.6em;
+  border-left: 4px solid var(--clr-mint);
+  background: var(--clr-mint-light);
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+  color: var(--clr-ink);
+  font-size: 18px;
+  line-height: 1.7;
+}
+.article-html-content blockquote p { margin: 0; }
+
+.article-html-content img {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 2em auto;
+  display: block;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.article-html-content figure {
+  margin: 2em 0;
+}
+.article-html-content figure img {
+  margin: 0 auto;
+}
+.article-html-content figcaption {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.8em;
+  line-height: 1.6;
+}
+
+.article-html-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2em 0;
+  font-size: 15px;
+}
+.article-html-content th,
+.article-html-content td {
+  border: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  text-align: left;
+}
+.article-html-content th {
+  background: var(--clr-cream);
+  font-weight: 700;
+  color: var(--clr-ink);
+}
+
+.article-html-content code {
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: var(--clr-ink);
+}
+
+.article-html-content hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2.5em 0;
+}
+
+/* First paragraph drop-cap effect (optional magazine style) */
+.article-html-content > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-size: 3.8em;
+  font-weight: 700;
+  float: left;
+  line-height: 0.9;
+  margin: 0.05em 0.1em 0 0;
+  color: var(--clr-mint);
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .article-html-content { font-size: 16px; }
+  .article-html-content p { font-size: 16px; }
+  .article-html-content h2 { font-size: 24px; }
+  .article-html-content h3 { font-size: 20px; }
+  .article-html-content > p:first-of-type::first-letter {
+    font-size: 3em;
+  }
 }
 

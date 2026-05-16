@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trash2, MessageSquare, Phone, Calendar, CheckCircle, Clock, PhoneCall, Filter, User, MoreVertical, ArrowUpRight } from 'lucide-react';
+import { Trash2, MessageSquare, Phone, CheckCircle, Clock, PhoneCall, ArrowUpRight } from 'lucide-react';
 import { adminFetchConsultations, adminDeleteConsultation, updateConsultationStatus } from '../../api/adminApi';
 import toast from 'react-hot-toast';
 import { formatDate } from '../../utils/format';

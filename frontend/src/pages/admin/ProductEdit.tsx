@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Save, Image as ImageIcon, FileText, Database, 
-  Plus, Trash2, Video, Globe, Sparkles, Loader2, 
-  Info, Layers, Clock, Zap, CheckCircle2, AlertCircle, Upload, Box, Truck, Tag, Settings, Ruler
+import {
+  Save, Image as ImageIcon,
+  Plus, Trash2, Loader2,
+  Info, CheckCircle2, AlertCircle, Upload, Box, Truck, Tag, Settings
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -21,7 +21,6 @@ const ProductEdit: React.FC = () => {
   const [loading, setLoading] = useState(isEdit);
   const [categories, setCategories] = useState<any[]>([]);
   const [attributes, setAttributes] = useState<any[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState<any>({
@@ -96,19 +95,16 @@ const ProductEdit: React.FC = () => {
 
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     let file = e.target.files?.[0]; if (!file) return;
-    setUploading(true);
-    try { 
+    try {
       if (file.type.startsWith('image/')) {
         const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
         file = await imageCompression(file, options);
       }
-      const { data } = await adminUploadSingle(file); 
-      setFormData((p: any) => ({ ...p, thumbnail: data.url })); 
-      toast.success('Tải ảnh thành công'); 
-    } catch (er: any) { 
-      toast.error(er.response?.data?.message || 'Lỗi tải ảnh'); 
-    } finally { 
-      setUploading(false); 
+      const { data } = await adminUploadSingle(file);
+      setFormData((p: any) => ({ ...p, thumbnail: data.url }));
+      toast.success('Tải ảnh thành công');
+    } catch (er: any) {
+      toast.error(er.response?.data?.message || 'Lỗi tải ảnh');
     }
   };
 
@@ -117,22 +113,20 @@ const ProductEdit: React.FC = () => {
     if (formData.images.length + acceptedFiles.length > 8) {
        return toast.error('Chỉ được tải lên tối đa 8 ảnh.');
     }
-    setUploading(true);
     try {
       const compressedFiles = await Promise.all(
         acceptedFiles.map(file => imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true }))
       );
       const { data } = await adminUploadMultiple(compressedFiles);
-      setFormData((p: any) => ({ ...p, images: [...p.images, ...data.map((d: any) => d.url)].slice(0,8) }));
-      toast.success(`Đã tải lên ${data.length} ảnh`);
-    } catch (er: any) { 
-      toast.error('Lỗi khi tải ảnh hàng loạt'); 
-    } finally { 
-      setUploading(false); 
+      const newUrls: string[] = Array.isArray(data) ? data.map((d: any) => d.url ?? d) : (data.urls ?? []);
+      setFormData((p: any) => ({ ...p, images: [...p.images, ...newUrls].slice(0, 8) }));
+      toast.success(`Đã tải lên ${newUrls.length} ảnh`);
+    } catch (er: any) {
+      toast.error('Lỗi khi tải ảnh hàng loạt');
     }
   }, [formData.images.length]);
   
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'image/*': [] }, multiple: true, maxFiles: 8 });
+  const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: { 'image/*': [] }, multiple: true, maxFiles: 8 });
 
   const generateVariants = () => {
     if (selectedAttrs.length === 0) return toast.error('Vui lòng chọn ít nhất 1 thuộc tính');
@@ -289,9 +283,9 @@ const ProductEdit: React.FC = () => {
                       <Upload size={16}/> Tải Video (MP4)
                     </button>
                     <input id="video-up" type="file" accept="video/mp4,video/quicktime" className="hidden" onChange={async (e) => {
-                       const file = e.target.files?.[0]; if(!file) return; setUploading(true);
-                       try { const { data } = await adminUploadSingle(file); setFormData((p:any) => ({...p, videoUrl: data.url})); toast.success('Tải video thành công'); } 
-                       catch(err) { toast.error('Lỗi tải video'); } finally { setUploading(false); }
+                       const file = e.target.files?.[0]; if(!file) return;
+                       try { const { data } = await adminUploadSingle(file); setFormData((p:any) => ({...p, videoUrl: data.url})); toast.success('Tải video thành công'); }
+                       catch(err) { toast.error('Lỗi tải video'); }
                     }} />
                     <span className="text-[12px] text-gray-500 font-medium">Hoặc YouTube:</span>
                     <input name="videoUrl" value={formData.videoUrl} onChange={handleInputChange} className={`${inp} flex-1`} placeholder="Nhập link Youtube" />

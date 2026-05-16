@@ -1,6 +1,6 @@
 import SEO from '../components/common/SEO';
 import LazyImage from '../components/common/LazyImage';
-import { ShieldCheck, Leaf, FlaskConical, Handshake, Award, FileCheck, Sparkles, Factory, Heart } from 'lucide-react';
+import { ShieldCheck, Leaf, FlaskConical, Handshake, Award, FileCheck, Factory } from 'lucide-react';
 
 const About = () => {
   const coreValues = [
