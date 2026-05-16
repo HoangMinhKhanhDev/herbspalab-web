@@ -76,7 +76,30 @@ Hostinger chia làm 2 nơi:
 > 5. Append Passenger config vào `public_html/.htaccess`
 > 6. Touch `~/domains/.../nodejs/tmp/restart.txt` để Passenger reload
 
-### 2.3 Database directory (chỉ làm 1 lần qua SSH)
+### 2.3 Environment variables (QUAN TRỌNG)
+
+**hPanel → Deployments → Edit → Environment Variables**
+
+Tất cả env vars bắt buộc phải được set. Xem file `HOSTINGER_ENV_TEMPLATE.md` trong repo để có danh sách đầy đủ và hướng dẫn chi tiết.
+
+**Env vars bắt buộc:**
+```bash
+NODE_ENV=production
+JWT_SECRET=<your-random-48-char-string>  # Generate: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+DATABASE_URL=file:/home/$(whoami)/private/herbspalab.db  # Thay $(whoami) bằng user thật
+CORS_ORIGIN=https://herbspalab.com,https://www.herbspalab.com
+FRONTEND_URL=https://herbspalab.com
+DOMAIN=https://herbspalab.com
+HOSTINGER_DEPLOY=1
+UPLOADS_DIR=/home/$(whoami)/uploads_data
+```
+
+**Validate env vars trước khi deploy:**
+```bash
+npm run validate:env
+```
+
+### 2.4 Database directory (chỉ làm 1 lần qua SSH)
 
 ```bash
 mkdir -p ~/private && chmod 700 ~/private
@@ -84,42 +107,13 @@ mkdir -p ~/private && chmod 700 ~/private
 
 `prisma db push` ở build sẽ tự tạo file `~/private/herbspalab.db`.
 
-### 2.4 Environment variables
+### 2.5 Uploads directory (chỉ làm 1 lần qua SSH)
 
-**hPanel → Deployments → Edit → Biến môi trường** (đây là nơi env vars được
-tiêm vào cả build phase và runtime — Hostinger sync sang Node.js app):
+```bash
+mkdir -p ~/uploads_data && chmod 755 ~/uploads_data
+```
 
-#### Bắt buộc
-
-| Key | Ví dụ | Mục đích |
-|-----|-------|----------|
-| `NODE_ENV` | `production` | Bật code production của Express, Helmet |
-| `JWT_SECRET` | chuỗi random ≥ 48 ký tự | Ký JWT cookie (sinh: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`) |
-| `DATABASE_URL` | `file:/home/u670570555/private/herbspalab.db` | Path tuyệt đối SQLite (thay `u670570555` bằng user của bạn) |
-| `CORS_ORIGIN` | `https://herbspalab.com,https://www.herbspalab.com` | Whitelist origin được gọi API |
-| `FRONTEND_URL` | `https://herbspalab.com` | Stripe redirect, link email reset password |
-| `DOMAIN` | `https://herbspalab.com` | Fallback FRONTEND_URL |
-| `HOSTINGER_DEPLOY` | `1` | Cờ cho `scripts/run-if-hostinger.js` (postinstall guard) |
-
-#### Tùy chọn
-
-| Key | Cần khi |
-|-----|---------|
-| `STRIPE_SECRET_KEY=sk_live_xxx` | Dùng thanh toán Stripe |
-| `STRIPE_WEBHOOK_SECRET=whsec_xxx` | Dùng Stripe webhook |
-| `MAIL_HOST=smtp.gmail.com` | Gửi email xác nhận đơn hàng |
-| `MAIL_PORT=587` | ↑ |
-| `MAIL_USER=your@email.com` | ↑ |
-| `MAIL_PASS=app_password` | ↑ (Gmail App Password, KHÔNG phải password chính) |
-
-#### ⚠️ TUYỆT ĐỐI KHÔNG đặt
-
-| Key | Lý do |
-|-----|-------|
-| `PORT` | Hostinger Passenger tự gán port qua `process.env.PORT`. Set cứng → 502 Bad Gateway |
-| `HOST` | Để Express bind 0.0.0.0 mặc định |
-
-### 2.5 Verify .htaccess sau deploy đầu tiên
+### 2.6 Verify .htaccess sau deploy đầu tiên
 
 `public_html/.htaccess` PHẢI có 2 rule này **trước** SPA fallback:
 
@@ -199,6 +193,15 @@ Login: `admin@herbspalab.com` / `Admin123@` — **đổi password ngay sau lần
    - `https://herbspalab.com` → React app
 
 ## 4. Troubleshooting
+
+### Environment variables not working
+Validate env vars:
+```bash
+cd ~/domains/herbspalab.com/nodejs
+npm run validate:env
+```
+
+If validation fails, check hPanel → Deployments → Edit → Environment Variables.
 
 ### Build log chỉ có `audited 1 package` → postinstall không chạy
 Thiếu env `HOSTINGER_DEPLOY=1` HOẶC Hostinger build commit cũ. Push empty
