@@ -52,16 +52,10 @@ if (fs.existsSync(backendPrisma)) {
   copyRecursiveSync(backendPrisma, serverPrisma);
 }
 
-// Copy backend/uploads (create .gitkeep if needed)
-const backendUploads = path.join(rootDir, 'backend', 'uploads');
-const serverUploads = path.join(buildDir, 'server', 'uploads');
-fs.mkdirSync(serverUploads, { recursive: true });
-if (fs.existsSync(backendUploads)) {
-  const gitkeep = path.join(backendUploads, '.gitkeep');
-  if (fs.existsSync(gitkeep)) {
-    fs.copyFileSync(gitkeep, path.join(serverUploads, '.gitkeep'));
-  }
-}
+// Create uploads dir at build root (backend's uploadsPath resolves to build/uploads in production)
+const buildUploads = path.join(buildDir, 'uploads');
+fs.mkdirSync(buildUploads, { recursive: true });
+fs.writeFileSync(path.join(buildUploads, '.gitkeep'), '');
 
 // Create root package.json for Hostinger Node.js (entry point)
 const rootPackageJson = {

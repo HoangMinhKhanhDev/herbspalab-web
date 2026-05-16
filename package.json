@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "cd build/server && npm install && npx prisma generate",
+    "start": "node server.js",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
     "build:frontend": "cd frontend && npm install && npm run build",
     "build:backend": "cd backend && npm install && npm run build",
     "build": "npm run build:frontend && npm run build:backend && node scripts/consolidate-build.js",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "start": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
+    "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
