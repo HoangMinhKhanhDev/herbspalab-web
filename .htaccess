@@ -1,0 +1,11 @@
+Options -MultiViews
+RewriteEngine On
+
+# Redirect all requests to Node.js backend
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ backend/dist/index.html [L]
+
+# Serve static files directly
+RewriteRule ^uploads/(.*)$ backend/uploads/$1 [L]
+RewriteRule ^frontend/dist/(.*)$ frontend/dist/$1 [L]
