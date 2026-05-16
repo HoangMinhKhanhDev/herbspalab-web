@@ -31,6 +31,18 @@ jobs:
           cd backend
           npm ci
           npm run build
+          # Verify dist directory was created
+          if [ ! -d "dist" ]; then
+            echo "ERROR: backend/dist directory not found after build"
+            echo "Current directory contents:"
+            ls -la
+            echo "Checking if dist exists anywhere:"
+            find . -name "dist" -type d 2>/dev/null || echo "No dist directory found"
+            exit 1
+          fi
+          echo "Backend build successful, dist directory exists"
+          echo "Dist directory contents:"
+          ls -la dist/
 
       # 3. Deploy to Hostinger via FTP
       - name: Upload to Hostinger
