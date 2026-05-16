@@ -133,10 +133,20 @@ app.use('/uploads', express.static(uploadsPath));
 const frontendPath = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, '..')
   : path.join(__dirname, '../../frontend/dist');
-app.use(express.static(frontendPath));
+// Cache assets (hashed filenames) for 1 year, but never cache index.html
+app.use(express.static(frontendPath, {
+  maxAge: '1y',
+  etag: false,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('index.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 app.get(/(.*)/, (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.resolve(frontendPath, 'index.html'));
 });
 
