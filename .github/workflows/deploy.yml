@@ -101,13 +101,16 @@ jobs:
       #    Bỏ qua bước này nếu chưa cấu hình SSH
       # ─────────────────────────────────────────────
       - name: 🔄 Post-deploy on server (SSH)
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PORT: ${{ secrets.SSH_PORT || '65002' }}
         run: |
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "Bỏ qua bước chạy lệnh trên Server (Vì chưa cấu hình SSH_PRIVATE_KEY)."
+            exit 0
+          fi
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key

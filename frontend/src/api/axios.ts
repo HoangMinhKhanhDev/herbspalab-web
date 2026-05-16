@@ -13,8 +13,8 @@ API.interceptors.request.use((config) => {
 API.interceptors.response.use(
   (response) => {
     // Prevent HTML from being processed as data (happens when Node is down and Apache serves index.html for API routes)
-    const contentType = response.headers['content-type'];
-    if (contentType && contentType.includes('text/html')) {
+    const contentType = response.headers['content-type'] as string | undefined;
+    if (contentType && typeof contentType === 'string' && contentType.includes('text/html')) {
       return Promise.reject(new Error('Server error: API returned HTML instead of JSON. Ensure Node.js server is running.'));
     }
     return response;
