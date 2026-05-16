@@ -4,12 +4,24 @@ dist
 .DS_Store
 *.log
 web
+
+# Build output - GitHub Actions sẽ build lại mỗi lần deploy
+build/
+herbspalab-hostinger.zip
+
+# Local dependencies
 backend/node_modules
 frontend/node_modules
 frontend/dist
 backend/dist
+
+# Database files
 backend/prisma/dev.db
 backend/prisma/dev.db-journal
+backend/prisma/*.db-wal
+backend/prisma/*.db-shm
+
+# Uploads
 backend/uploads/*
 public/uploads/*
 !backend/uploads/.gitkeep
