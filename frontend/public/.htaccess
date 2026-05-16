@@ -91,6 +91,12 @@ Redirect 403 /wp-includes
 
 # 5. PERFORMANCE - BROWSER CACHING
 # ───────────────────────────────────────
+# Override: never cache API responses
+<IfModule mod_headers.c>
+    Header always set Cache-Control "no-store, no-cache, must-revalidate" "expr=%{REQUEST_URI} =~ m#^/api#"
+    Header always unset Expires "expr=%{REQUEST_URI} =~ m#^/api#"
+</IfModule>
+
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresDefault "access plus 1 month"

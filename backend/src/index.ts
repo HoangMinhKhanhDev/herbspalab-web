@@ -166,6 +166,14 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+// Prevent browsers / CDNs from caching API responses
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
