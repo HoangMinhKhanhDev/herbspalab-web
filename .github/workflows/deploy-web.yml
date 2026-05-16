@@ -1,12 +1,8 @@
-name: Deploy Web (Backend + Frontend) to Hostinger
+name: Deploy Web (Backend + Frontend) to Hostinger [DISABLED - web/ dir removed]
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'web/**'
-      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+    # Disabled: web/ directory no longer exists in this repo
 
 jobs:
   deploy:

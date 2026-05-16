@@ -1,9 +1,9 @@
-name: Deploy HerbSpaLab to Hostinger (Unified)
+name: Deploy HerbSpaLab to Hostinger (Unified) [DISABLED - using Hostinger auto-deploy]
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    # Disabled: Hostinger auto-deploys from GitHub directly
+    # Re-enable by changing to: push: branches: [main]
 
 jobs:
   build-and-deploy:
