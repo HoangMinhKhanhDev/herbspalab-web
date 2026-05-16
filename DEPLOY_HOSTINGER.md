@@ -1,142 +1,162 @@
-# Deploy HerbSpaLab lên Hostinger
+# Deploy HerbSpaLab lên Hostinger (Git Deployment)
 
-Repo này deploy **tự động** mỗi khi push vào `main` qua GitHub Actions
-(`.github/workflows/deploy.yml`).
+Repo này deploy qua **Hostinger Git Deployment** (hPanel → Deployments).
+Mỗi khi push lên `main`, Hostinger tự clone repo, chạy `npm install`,
+postinstall sẽ tự build frontend + backend, install prod deps, đẩy schema
+SQLite, rồi Passenger khởi động app qua `npm start`.
 
-## 1. Cấu trúc thư mục trên server
+## 1. Setup ban đầu (chỉ làm 1 lần)
 
-Sau khi deploy thành công, `public_html` sẽ có dạng:
+### 1.1 Tạo Node.js application
 
-```
-public_html/
-├── .htaccess                  # Apache rewrite (SPA + bypass /api, /uploads)
-├── index.html                 # React build entry
-├── assets/                    # JS/CSS/img đã hash bởi Vite
-├── favicon.svg, robots.txt    # ...
-├── uploads/                   # Ảnh sản phẩm do admin upload (giữ qua các lần deploy)
-├── .env                       # Production secrets
-├── package.json               # `{ "start": "node server/index.js" }`
-└── server/                    # Node backend đã build
-    ├── index.js               # Entry point Passenger
-    ├── routes/, controllers/, ...
-    ├── node_modules/          # `npm install --omit=dev` chạy sau deploy
-    └── prisma/
-        ├── schema.prisma
-        └── dev.db             # SQLite (nếu DATABASE_URL trỏ vào đây)
-```
+Vào **hPanel → Advanced → Node.js**:
 
-> ⚠️ Apache đã được cấu hình **chặn** truy cập trực tiếp vào `/server/**`,
-> `/prisma/**`, `.env`, và mọi file `*.db|*.sqlite|*.log`. Backend Node
-> cũng có middleware bảo vệ thứ hai.
-
-## 2. Cấu hình Hostinger (chỉ làm 1 lần)
-
-### 2.1 Tạo Node.js application
-- **hPanel → Advanced → Node.js**
 - **Application Root**: `domains/herbspalab.com/public_html`
 - **Application URL**: `herbspalab.com`
-- **Application Startup File**: `server/index.js`
-- **Node version**: 20 hoặc cao hơn
+- **Application Startup File**: `build/server/index.js`
+  *(Hostinger sẽ chạy lệnh tương đương `node build/server/index.js`)*
+- **Node version**: 20.x trở lên
 
-Sau khi tạo, hPanel sẽ hiển thị nút **Restart App** và **Run NPM Install**.
+### 1.2 Kết nối Git Deployment
 
-### 2.2 GitHub Secrets
+Vào **hPanel → Advanced → Git** (hoặc tab **Deployments** của app):
 
-Vào **GitHub repo → Settings → Secrets and variables → Actions**, thêm:
+- **Repository URL**: `https://github.com/HoangMinhKhanhDev/herbspalab-web.git`
+- **Branch**: `main`
+- **Deploy path**: cùng path với Application Root ở trên
+- Bật **Auto deployment on push**
 
-| Secret | Ví dụ | Bắt buộc |
-|--------|-------|----------|
-| `FTP_SERVER` | `ftp.herbspalab.com` hoặc IP | ✅ |
-| `FTP_USERNAME` | `u123456.herbspalab` | ✅ |
-| `FTP_PASSWORD` | mật khẩu FTP | ✅ |
-| `SSH_HOST` | server hostname | ✅ |
-| `SSH_USER` | user SSH (vd `u123456`) | ✅ |
-| `SSH_PORT` | `65002` (mặc định Hostinger) | ✅ |
-| `SSH_PRIVATE_KEY` | private key tương ứng SSH key đã add lên hPanel | ✅ |
-| `JWT_SECRET` | chuỗi random dài 32+ ký tự | ✅ |
-| `DATABASE_URL` | `file:/home/u123/private/herbspalab.db` | ✅ |
+### 1.3 Environment variables
+
+Vào **Node.js → Environment Variables** của app, thêm:
+
+| Key | Ví dụ | Bắt buộc |
+|-----|-------|----------|
+| `NODE_ENV` | `production` | ✅ |
+| `JWT_SECRET` | chuỗi random ≥ 32 ký tự | ✅ |
+| `DATABASE_URL` | `file:/home/u123/private/herbspalab.db` (absolute path) | ✅ |
 | `CORS_ORIGIN` | `https://herbspalab.com,https://www.herbspalab.com` | ✅ |
 | `FRONTEND_URL` | `https://herbspalab.com` | ✅ |
 | `DOMAIN` | `https://herbspalab.com` | ✅ |
+| `HOSTINGER_DEPLOY` | `1` | ✅ — bật build trong `postinstall` |
 | `STRIPE_SECRET_KEY` | `sk_live_xxx` | nếu dùng Stripe |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_xxx` | nếu dùng Stripe |
-| `MAIL_HOST` | `smtp.gmail.com` | nếu cần gửi email |
-| `MAIL_PORT` | `587` | nếu cần gửi email |
-| `MAIL_USER` | `your@email.com` | nếu cần gửi email |
-| `MAIL_PASS` | App password Google | nếu cần gửi email |
+| `MAIL_HOST` | `smtp.gmail.com` | nếu cần email |
+| `MAIL_PORT` | `587` | nếu cần email |
+| `MAIL_USER` | `your@email.com` | nếu cần email |
+| `MAIL_PASS` | App password Google | nếu cần email |
 
-> **Lưu ý PORT**: **không set** `PORT` trong secrets. Hostinger Passenger
-> tự gán port động và inject vào `process.env.PORT`.
+> **⚠️ KHÔNG đặt `PORT`** — Hostinger Passenger tự gán port động vào `process.env.PORT`.
+>
+> **⚠️ `HOSTINGER_DEPLOY=1` bắt buộc** — đây là cờ để script `postinstall` biết
+> đang chạy trong môi trường Hostinger và thực hiện build (tránh build vô tình
+> trên máy local hoặc CI).
 
-### 2.3 Database location
+### 1.4 Database location
 
-Khuyến nghị **đặt SQLite ngoài `public_html`** để Apache không thể serve được:
+Khuyến nghị đặt SQLite **ngoài `public_html`** để Apache không thể serve được:
 
 ```bash
-# SSH vào server
-mkdir -p ~/private
-chmod 700 ~/private
-# Lần đầu, copy db rỗng nếu cần
+# SSH vào Hostinger
+mkdir -p ~/private && chmod 700 ~/private
+# Lần đầu: prisma db push sẽ tự tạo file db rỗng tại path bạn chỉ định
 ```
 
-Rồi set `DATABASE_URL=file:/home/u123456/private/herbspalab.db` trong GitHub secret.
+## 2. Quy trình deploy
 
-## 3. Quy trình deploy
-
-1. Push code lên `main` → GitHub Actions tự chạy.
-2. Workflow sẽ:
-   - `npm ci` + build frontend (Vite)
-   - `npm ci` + build backend (TypeScript → JS)
-   - Gộp output vào `build/` qua `scripts/consolidate-build.js`
-   - Tạo `build/.env` từ secrets
-   - Upload `build/` lên `public_html/` qua FTPS
-   - SSH vào server: `npm install --omit=dev`, `prisma generate`,
-     `prisma db push`, `touch tmp/restart.txt` để Passenger reload
+1. Push code lên `main`.
+2. Hostinger Git Deploy tự động:
+   1. Pull code mới về `public_html/`.
+   2. Chạy `npm install` ở root.
+   3. `postinstall` → `scripts/run-if-hostinger.js` → phát hiện môi trường Hostinger → chạy `npm run deploy:hostinger`:
+      - Build frontend (Vite → `frontend/dist/`)
+      - Build backend (TypeScript → `backend/dist/`)
+      - `scripts/consolidate-build.js` → gộp vào `build/`
+      - `cd build/server && npm install --omit=dev`
+      - `npx prisma generate`
+      - `npx prisma db push --skip-generate --accept-data-loss`
+   4. Passenger khởi động: `node build/server/index.js`.
 3. Kiểm tra:
    - `https://herbspalab.com` → React app
    - `https://herbspalab.com/api/products` → JSON
 
+## 3. Cấu trúc thư mục trên server sau deploy
+
+```
+public_html/
+├── .git/                       # Hostinger Git clone
+├── frontend/                   # Source code
+├── backend/                    # Source code
+├── scripts/                    # Build helpers
+├── package.json                # Root: start, build scripts
+├── node_modules/               # Root deps (concurrently)
+├── build/                      # ← Output sau build
+│   ├── index.html              # React entry
+│   ├── assets/                 # JS/CSS hashed
+│   ├── .htaccess               # (không dùng cho Node app, OK)
+│   ├── uploads/                # Ảnh user upload (giữ qua các lần deploy)
+│   ├── server/                 # ← Backend (Passenger startup file ở đây)
+│   │   ├── index.js
+│   │   ├── routes/, controllers/, ...
+│   │   ├── node_modules/       # Production deps
+│   │   └── prisma/
+│   │       └── schema.prisma
+│   └── package.json
+```
+
+> Passenger proxy **mọi request** vào Node app. Backend (`backend/src/index.ts`)
+> serve cả static frontend (`build/`) và API (`/api/*`) — không cần `.htaccess` SPA rewrite.
+
 ## 4. Deploy thủ công (fallback)
 
+Trên máy local:
+
 ```bash
-npm run build                # tạo build/
-# Upload build/* lên public_html/ qua File Manager hoặc FTP client
-# SSH vào server và chạy:
-cd ~/domains/herbspalab.com/public_html/server
+npm run build              # tạo build/
+# Sau đó upload toàn bộ build/ vào public_html/build/ qua File Manager / SFTP
+```
+
+Trên SSH Hostinger:
+
+```bash
+cd ~/domains/herbspalab.com/public_html/build/server
 npm install --omit=dev
 npx prisma generate
 npx prisma db push --skip-generate
+# Restart Node app trong hPanel hoặc:
 mkdir -p ../tmp && touch ../tmp/restart.txt
 ```
 
 ## 5. Troubleshooting
 
-### "API trả về HTML thay vì JSON"
-→ `.htaccess` đang nuốt `/api/*`. Đảm bảo `public_html/.htaccess` có:
-```apache
-RewriteRule ^api(/.*)?$ - [L]
-RewriteRule ^uploads(/.*)?$ - [L]
-```
+### "Triển khai xây dựng thất bại" – log chỉ có `audited 1 package`
+→ Thiếu env var `HOSTINGER_DEPLOY=1`. Postinstall đang skip build.
+Thêm vào Node.js Environment Variables và deploy lại.
 
-### "Cannot find module @prisma/client"
-→ Chạy `npm install --omit=dev` trong `public_html/server/`,
-sau đó `npx prisma generate`.
+### "Cannot find module @prisma/client" khi start
+→ `cd build/server && npm install --omit=dev && npx prisma generate`,
+hoặc redeploy.
 
-### "Database connection failed"
-→ Kiểm tra `DATABASE_URL` là đường dẫn **tuyệt đối** và user `u123456`
-có quyền đọc/ghi file đó.
+### "API trả về 502 / Application failed to start"
+→ Xem log: hPanel → Node.js → app → **Logs**. Thường là:
+- Thiếu env var bắt buộc (`JWT_SECRET`, `DATABASE_URL`)
+- `DATABASE_URL` trỏ tới path không có quyền ghi
+- Port conflict (đảm bảo KHÔNG set `PORT` env)
 
 ### "CORS blocked"
-→ Set `CORS_ORIGIN` bao gồm cả `https://herbspalab.com` và
-`https://www.herbspalab.com`. Hoặc redirect www → non-www trong `.htaccess`.
-
-### "Upload ảnh fail (multer 500)"
-→ `mkdir -p uploads && chmod 755 uploads` ở root `public_html`.
-Backend cũng tự tạo nếu thiếu (xem `backend/src/index.ts`).
+→ `CORS_ORIGIN` phải gồm cả `https://herbspalab.com` lẫn `https://www.herbspalab.com`.
 
 ### "Stripe redirect về localhost"
-→ Set secret `FRONTEND_URL=https://herbspalab.com` và redeploy.
+→ Đặt `FRONTEND_URL=https://herbspalab.com` và redeploy.
 
-### "Passenger không restart sau deploy"
-→ SSH và chạy: `mkdir -p ~/domains/herbspalab.com/public_html/tmp && touch ~/domains/herbspalab.com/public_html/tmp/restart.txt`
-hoặc bấm **Restart** trong hPanel.
+### Upload ảnh fail
+→ Backend tự `mkdir -p` uploads dir khi khởi động. Nếu vẫn lỗi:
+```bash
+cd ~/domains/herbspalab.com/public_html/build
+mkdir -p uploads && chmod 755 uploads
+```
+
+### Build OOM / timeout trên Hostinger
+→ Build trên container Hostinger có RAM hạn chế. Cách giải quyết:
+- Build local rồi push thẳng `build/` (xem mục 4)
+- Hoặc dùng GitHub Actions FTP deploy (phiên bản trước của repo này)
