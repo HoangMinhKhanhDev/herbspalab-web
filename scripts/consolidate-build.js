@@ -52,6 +52,23 @@ if (fs.existsSync(backendPrisma)) {
   copyRecursiveSync(backendPrisma, serverPrisma);
 }
 
+// Copy seed-demo.js (compiled seed script) to build/server/prisma
+const seedDemoJs = path.join(rootDir, 'backend', 'prisma', 'seed-demo.js');
+const serverSeedDemoJs = path.join(buildDir, 'server', 'prisma', 'seed-demo.js');
+if (fs.existsSync(seedDemoJs)) {
+  console.log('📁 Copying seed-demo.js to build/server/prisma');
+  fs.copyFileSync(seedDemoJs, serverSeedDemoJs);
+}
+
+// Copy backup-db.sh to build/scripts for easy access on server
+const backupScript = path.join(rootDir, 'scripts', 'backup-db.sh');
+const buildBackupScript = path.join(buildDir, 'scripts', 'backup-db.sh');
+if (fs.existsSync(backupScript)) {
+  console.log('📁 Copying backup-db.sh to build/scripts');
+  fs.mkdirSync(path.join(buildDir, 'scripts'), { recursive: true });
+  fs.copyFileSync(backupScript, buildBackupScript);
+}
+
 // Create uploads dir at build root (backend's uploadsPath resolves to build/uploads in production)
 const buildUploads = path.join(buildDir, 'uploads');
 fs.mkdirSync(buildUploads, { recursive: true });

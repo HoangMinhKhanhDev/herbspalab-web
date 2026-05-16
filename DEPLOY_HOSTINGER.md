@@ -4,6 +4,10 @@ Repo deploy qua **Hostinger Git Deployment** (hPanel → Deployments) với
 framework **Express**. Khi push lên `main`, Hostinger build và publish theo
 mô hình **dual-target** (rất quan trọng để hiểu).
 
+## 🎯 QUAN TRỌNG: Deployment đã được tự động hóa!
+
+**Không cần SSH seed data thủ công nữa!** Seed data sẽ tự động chạy sau mỗi lần deploy.
+
 ## 1. Mô hình deploy của Hostinger Express
 
 Hostinger chia làm 2 nơi:
@@ -184,11 +188,14 @@ Login: `admin@herbspalab.com` / `Admin123@` — **đổi password ngay sau lần
      - `cd build/server && npm install --omit=dev`
      - `npx prisma generate`
      - `npx prisma db push --skip-generate --accept-data-loss`
+     - **`node prisma/seed-demo.js` → TỰ ĐỘNG seed data!** (nếu DB trống)
    - Sync `build/` → `public_html/`
    - Sync repo → `nodejs/`
    - Touch `nodejs/tmp/restart.txt` → Passenger reload
 3. Kiểm tra:
    - `https://herbspalab.com/api/health` → `{"status":"ok","db":"connected"}`
+   - `https://herbspalab.com/products` → Phải thấy 10 sản phẩm
+   - `https://herbspalab.com/news` → Phải thấy 5 bài blog
    - `https://herbspalab.com` → React app
 
 ## 4. Troubleshooting
@@ -251,17 +258,26 @@ cd ~
 
 ## 5. Backup database
 
-Thêm vào crontab (`crontab -e`):
+Script backup đã có sẵn: `scripts/backup-db.sh`. Setup:
 
-```cron
-# Backup SQLite database hằng ngày 2h sáng
-0 2 * * * cp ~/private/herbspalab.db ~/private/backups/herbspalab-$(date +\%Y\%m\%d).db && find ~/private/backups -name "*.db" -mtime +30 -delete
-```
-
-Tạo folder backup trước:
 ```bash
+# Tạo thư mục scripts và copy backup script
+mkdir -p ~/scripts
+cp ~/domains/herbspalab.com/nodejs/scripts/backup-db.sh ~/scripts/
+chmod +x ~/scripts/backup-db.sh
+
+# Tạo thư mục backup
 mkdir -p ~/private/backups && chmod 700 ~/private/backups
+
+# Thêm vào crontab (crontab -e)
+0 2 * * * ~/scripts/backup-db.sh >> ~/scripts/backup.log 2>&1
 ```
+
+Script này sẽ:
+- Backup SQLite database mỗi ngày lúc 2h sáng
+- Nén backup bằng gzip
+- Giữ backup 30 ngày (tự động xóa cũ)
+- Ghi log vào `~/scripts/backup.log`
 
 ## 6. Manual deploy (fallback)
 
