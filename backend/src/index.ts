@@ -145,6 +145,27 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check (used by monitoring / Hostinger / uptime checks)
+app.get('/api/health', async (_req, res) => {
+  try {
+    // Verify DB connectivity
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({
+      status: 'ok',
+      env: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString(),
+      uptime: Math.round(process.uptime()),
+      db: 'connected',
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: 'degraded',
+      db: 'disconnected',
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+});
+
 // API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
