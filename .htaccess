@@ -1,11 +1,4 @@
-Options -MultiViews
-RewriteEngine On
-
-# Redirect all requests to Node.js backend
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ backend/dist/index.html [L]
-
-# Serve static files directly
-RewriteRule ^uploads/(.*)$ backend/uploads/$1 [L]
-RewriteRule ^frontend/dist/(.*)$ frontend/dist/$1 [L]
+# This file is a DEV/REPO-ROOT placeholder.
+# The real Apache rewrite rules used in production live in:
+#   frontend/public/.htaccess  (gets copied to build/.htaccess during deploy)
+# Do NOT upload this file to Hostinger.

@@ -29,6 +29,7 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { mkdirSync } from 'fs';
 import swaggerJsdoc from 'swagger-jsdoc';
 import prisma from './config/prisma.js';
 import productRoutes from './routes/productRoutes.js';
@@ -46,6 +47,10 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Trust reverse proxy (Hostinger Passenger/Apache) so req.ip & rate-limit work correctly
+app.set('trust proxy', 1);
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -55,7 +60,17 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Stricter limiter for auth endpoints to mitigate brute-force
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Quá nhiều lần thử đăng nhập, vui lòng thử lại sau 15 phút',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use('/api', limiter);
+app.use(['/api/users/login', '/api/users/register', '/api/users/forgot-password'], authLimiter);
 app.use(helmet({
   contentSecurityPolicy: false, // Disable for easier serving of static assets if needed
 }));
@@ -97,7 +112,10 @@ const swaggerOptions = {
   apis: ['./src/routes/*.ts'],
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Only expose Swagger UI in non-production environments to avoid leaking API surface
+if (!isProduction) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 // Simple in-memory cache for de-duplicating traffic logs (prevent double counting in dev/fast nav)
 const trafficCache = new Map<string, number>();
 
@@ -128,7 +146,6 @@ app.use((req, res, next) => {
 });
 
 // API Routes
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
@@ -140,20 +157,35 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/attributes', attributeRoutes);
 app.use('/api/consultations', consultationRoutes);
 
-// Serving Static Files
+// Serving Static Files (uploads)
 const uploadsPath = path.join(__dirname, '../uploads');
+try { mkdirSync(uploadsPath, { recursive: true }); } catch {}
 app.use('/uploads', express.static(uploadsPath));
 
 // Serving React Frontend
 // In production (Hostinger): backend is at public_html/server/, frontend is at public_html/
 // In development: backend/dist/ → ../../frontend/dist
-const frontendPath = process.env.NODE_ENV === 'production'
+const frontendPath = isProduction
   ? path.join(__dirname, '..')
   : path.join(__dirname, '../../frontend/dist');
+
+// SECURITY: block direct access to internal backend folders/files when they
+// sit alongside the frontend (Hostinger layout: public_html/server, prisma, .env ...)
+const BLOCKED_PATHS = /^\/(server|prisma|node_modules|\.env|\.git|package(-lock)?\.json|tsconfig\.json)(\/|$)/i;
+const BLOCKED_EXT = /\.(db|db-journal|db-wal|sqlite|sqlite3|sql|bak|log|env)$/i;
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+  if (BLOCKED_PATHS.test(req.path) || BLOCKED_EXT.test(req.path)) {
+    return res.status(404).send('Not found');
+  }
+  next();
+});
+
 // Cache assets (hashed filenames) for 1 year, but never cache index.html
 app.use(express.static(frontendPath, {
   maxAge: '1y',
   etag: false,
+  index: false, // we'll serve index.html explicitly via the catch-all below
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('index.html')) {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');

@@ -8,10 +8,20 @@
 Options -Indexes
 
 # Chặn truy cập vào các file nhạy cảm
-<FilesMatch "^(\.env|\.git|package\.json|package-lock\.json|composer\.json|tsconfig\.json|vite\.config\.ts)$">
+<FilesMatch "^(\.env|\.env\..*|\.git|package\.json|package-lock\.json|composer\.json|tsconfig\.json|vite\.config\.ts)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
+
+# Chặn truy cập file database SQLite và file backup
+<FilesMatch "\.(db|db-journal|db-wal|sqlite|sqlite3|sql|bak|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Chặn truy cập trực tiếp vào thư mục server (Node backend)
+RedirectMatch 403 ^/server(/.*)?$
+RedirectMatch 403 ^/prisma(/.*)?$
 
 # 2. BOT MITIGATION & MALICIOUS ACCESS
 # ───────────────────────────────────────
@@ -38,7 +48,12 @@ Redirect 403 /wp-includes
     RewriteRule ^(.*)$ - [F,L]
 
 
-    # SPA Routing (React/Vite)
+    # Bypass Apache rewrite for backend (Node) routes
+    RewriteRule ^api(/.*)?$ - [L]
+    RewriteRule ^uploads(/.*)?$ - [L]
+    RewriteRule ^api-docs(/.*)?$ - [L]
+
+    # SPA Routing (React/Vite) – fallback to index.html for client-side routes
     RewriteRule ^index\.html$ - [L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d

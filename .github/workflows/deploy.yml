@@ -35,7 +35,7 @@ jobs:
       - name: 📦 Build Frontend
         run: |
           cd frontend
-          npm install
+          npm ci
           npm run build
           echo "✅ Frontend: $(du -sh dist/ | cut -f1)"
 
@@ -45,7 +45,7 @@ jobs:
       - name: 🔧 Build Backend
         run: |
           cd backend
-          npm install
+          npm ci
           npm run build
           echo "✅ Backend build done"
 
@@ -63,13 +63,21 @@ jobs:
       # ─────────────────────────────────────────────
       - name: 🔐 Create production .env
         run: |
-          printf 'PORT=3000\nNODE_ENV=production\nJWT_SECRET=%s\nDATABASE_URL=%s\nCORS_ORIGIN=%s\nSTRIPE_SECRET_KEY=%s\n' \
-            "${{ secrets.JWT_SECRET }}" \
-            "${{ secrets.DATABASE_URL }}" \
-            "${{ secrets.CORS_ORIGIN }}" \
-            "${{ secrets.STRIPE_SECRET_KEY }}" \
-            > build/.env
-          echo "✅ .env created"
+          cat > build/.env <<EOF
+          NODE_ENV=production
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          DOMAIN=${{ secrets.DOMAIN }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          MAIL_HOST=${{ secrets.MAIL_HOST }}
+          MAIL_PORT=${{ secrets.MAIL_PORT }}
+          MAIL_USER=${{ secrets.MAIL_USER }}
+          MAIL_PASS=${{ secrets.MAIL_PASS }}
+          EOF
+          echo "✅ .env created (PORT omitted: Hostinger Passenger assigns it dynamically)"
 
       # ─────────────────────────────────────────────
       # 7. Upload lên Hostinger qua FTP
@@ -86,12 +94,17 @@ jobs:
           protocol: ftps
           local-dir: build/
           server-dir: domains/herbspalab.com/public_html/
-          # Không xóa uploads/ và database trên server
+          # Không xóa user uploads & database trên server.
+          # Lưu ý: KHÔNG exclude toàn bộ uploads/** vì local build có .gitkeep
+          # giúp tạo thư mục lần đầu. Chỉ exclude file đã upload.
           exclude: |
-            **/uploads/**
             **/server/prisma/*.db
             **/server/prisma/*.db-journal
             **/server/prisma/*.db-wal
+            **/server/prisma/*.sqlite
+            **/server/prisma/*.sqlite3
+            **/.git/**
+            **/.github/**
           timeout: 60000
           log-level: standard
 
@@ -121,13 +134,18 @@ jobs:
             -o StrictHostKeyChecking=no \
             "$SSH_USER@$SSH_HOST" << 'ENDSSH'
             set -e
-            cd ~/domains/herbspalab.com/public_html/server
+            cd ~/domains/herbspalab.com/public_html
+            echo "📁 Ensure uploads dir exists..."
+            mkdir -p uploads && chmod 755 uploads
+            cd server
             echo "📦 npm install..."
-            npm install --omit=dev --prefer-offline
+            npm install --omit=dev --prefer-offline --no-audit --no-fund
             echo "🔄 prisma generate..."
             npx prisma generate
-            echo "🗄️ prisma migrate..."
-            npx prisma migrate deploy
+            echo "🗄️ prisma db push (sync schema to SQLite)..."
+            npx prisma db push --skip-generate --accept-data-loss
+            echo "🔁 Restart Node app (touch restart.txt for Passenger)..."
+            mkdir -p tmp && touch tmp/restart.txt
             echo "✅ Post-deploy done!"
           ENDSSH
 

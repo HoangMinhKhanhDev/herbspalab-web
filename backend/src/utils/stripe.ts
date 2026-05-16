@@ -31,8 +31,8 @@ const stripeUtil = {
           quantity: item.qty,
         })),
         mode: 'payment',
-        success_url: `${process.env.DOMAIN || 'http://localhost:5000'}/order-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.DOMAIN || 'http://localhost:5000'}/cart`,
+        success_url: `${process.env.FRONTEND_URL || process.env.DOMAIN || 'http://localhost:5173'}/order-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL || process.env.DOMAIN || 'http://localhost:5173'}/checkout`,
         metadata: {
           orderId: order.id.toString(),
         },

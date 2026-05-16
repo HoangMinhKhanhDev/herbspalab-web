@@ -14,9 +14,15 @@ const transporter = nodemailer.createTransport({
 const mailer = {
   async sendOrderConfirmation(to: string, order: any) {
     try {
-      const shippingAddress = typeof order.shippingInfo === 'string' 
-        ? JSON.parse(order.shippingInfo) 
+      const shippingAddress = typeof order.shippingInfo === 'string'
+        ? JSON.parse(order.shippingInfo)
         : order.shippingInfo;
+      const addressLine = [
+        shippingAddress?.detail || shippingAddress?.address,
+        shippingAddress?.ward,
+        shippingAddress?.district,
+        shippingAddress?.province || shippingAddress?.city,
+      ].filter(Boolean).join(', ');
 
       const info = await transporter.sendMail({
         from: `"HerbSpaLab" <${process.env.MAIL_USER}>`,
@@ -41,7 +47,7 @@ const mailer = {
                 <td style="text-align: right; border-top: 1px solid #eee;">${order.totalPrice.toLocaleString()}₫</td>
               </tr>
             </table>
-            <p style="margin-top: 30px;"><b>Địa chỉ giao hàng:</b><br>${shippingAddress.address}, ${shippingAddress.city}</p>
+            <p style="margin-top: 30px;"><b>Địa chỉ giao hàng:</b><br>${addressLine || 'N/A'}</p>
             <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 30px; text-align: center;">
               <p style="margin: 0; font-size: 13px; color: #6b7280;">Nếu có bất kỳ thắc mắc nào, đừng ngần ngại liên hệ với chúng tôi qua Zalo hoặc Hotline nhé!</p>
             </div>

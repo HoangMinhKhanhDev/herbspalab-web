@@ -20,6 +20,7 @@ const NewsDetail = lazy(() => import('./pages/NewsDetail'));
 const SkinQuiz = lazy(() => import('./pages/SkinQuiz'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Checkout = lazy(() => import('./pages/Checkout'));
+const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const Login = lazy(() => import('./pages/Login'));
@@ -154,6 +155,7 @@ function App() {
                 <Route path="/skin-quiz" element={<SkinQuiz />} />
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
                 <Route path="/admin" element={isAdmin ? <AdminPanel /> : <Navigate to="/login" />}>
                   <Route index element={<AdminDashboard />} />

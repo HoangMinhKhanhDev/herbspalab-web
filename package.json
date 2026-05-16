@@ -4,12 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "npm run install:all && npm run build && cd build/server && npm install --omit=dev && npx prisma generate",
     "start": "node build/server/index.js",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
-    "build:frontend": "cd frontend && npm install && npm run build",
-    "build:backend": "cd backend && npm install && npm run build",
+    "build:frontend": "cd frontend && npm ci && npm run build",
+    "build:backend": "cd backend && npm ci && npm run build",
     "build": "npm run build:frontend && npm run build:backend && node scripts/consolidate-build.js",
     "install:all": "cd frontend && npm install && cd ../backend && npm install",
     "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
