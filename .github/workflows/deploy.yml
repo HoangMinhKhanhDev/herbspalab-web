@@ -85,7 +85,7 @@ jobs:
           port: 21
           protocol: ftps
           local-dir: build/
-          server-dir: public_html/
+          server-dir: domains/herbspalab.com/public_html/
           # Không xóa uploads/ và database trên server
           exclude: |
             **/uploads/**
@@ -121,7 +121,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             "$SSH_USER@$SSH_HOST" << 'ENDSSH'
             set -e
-            cd ~/public_html/server
+            cd ~/domains/herbspalab.com/public_html/server
             echo "📦 npm install..."
             npm install --omit=dev --prefer-offline
             echo "🔄 prisma generate..."
