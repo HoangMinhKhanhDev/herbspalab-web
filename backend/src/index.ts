@@ -1,9 +1,31 @@
-import 'dotenv/config';
+// Load environment variables FIRST before any imports
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from multiple possible locations
+const envPaths = [
+  path.resolve(__dirname, '../../.env'), // From build/server -> root
+  path.resolve(process.cwd(), '.env'),   // From current working directory
+  path.resolve(__dirname, '../../../.env'), // From build/server -> root (alternative)
+];
+
+for (const envPath of envPaths) {
+  if (existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    break;
+  }
+}
+dotenv.config(); // Fallback to default
+
+// Now import other modules
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -21,9 +43,6 @@ import attributeRoutes from './routes/attributeRoutes.js';
 import consultationRoutes from './routes/consultationRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
