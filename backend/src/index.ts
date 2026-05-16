@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
@@ -21,8 +21,6 @@ import attributeRoutes from './routes/attributeRoutes.js';
 import consultationRoutes from './routes/consultationRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
