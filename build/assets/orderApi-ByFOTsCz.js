@@ -1,1 +1,0 @@
-import{Z as e}from"./index-DJrEA0q6.js";var t=t=>e.post(`/orders`,t),n=()=>e.get(`/orders/myorders`);export{n,t};
