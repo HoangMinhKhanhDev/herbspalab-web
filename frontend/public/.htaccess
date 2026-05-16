@@ -37,6 +37,11 @@ Redirect 403 /wp-includes
     RewriteCond %{QUERY_STRING} _REQUEST(=|[|%[0-9A-Z]{0,2})
     RewriteRule ^(.*)$ - [F,L]
 
+    # Proxy API và Uploads qua cổng 3000 của Node.js
+    RewriteCond %{REQUEST_URI} ^/api/ [OR]
+    RewriteCond %{REQUEST_URI} ^/uploads/
+    RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+
     # SPA Routing (React/Vite)
     RewriteRule ^index\.html$ - [L]
     RewriteCond %{REQUEST_FILENAME} !-f
