@@ -3,7 +3,7 @@ name: 🚀 Deploy HerbSpaLab to Hostinger
 on:
   push:
     branches: [main]
-  workflow_dispatch: # Cho phép chạy thủ công từ GitHub UI
+  workflow_dispatch: # Chạy thủ công từ GitHub → Actions → Run workflow
 
 jobs:
   build-and-deploy:
@@ -12,13 +12,13 @@ jobs:
 
     steps:
       # ─────────────────────────────────────────────
-      # 1. Lấy source code
+      # 1. Checkout source code
       # ─────────────────────────────────────────────
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
       # ─────────────────────────────────────────────
-      # 2. Setup Node.js
+      # 2. Setup Node.js 20
       # ─────────────────────────────────────────────
       - name: ⚙️ Setup Node.js 20
         uses: actions/setup-node@v4
@@ -32,17 +32,17 @@ jobs:
       # ─────────────────────────────────────────────
       # 3. Build Frontend (React + Vite)
       # ─────────────────────────────────────────────
-      - name: 📦 Install & Build Frontend
+      - name: 📦 Build Frontend
         run: |
           cd frontend
           npm ci
           npm run build
-          echo "✅ Frontend build done - $(du -sh dist/ | cut -f1)"
+          echo "✅ Frontend: $(du -sh dist/ | cut -f1)"
 
       # ─────────────────────────────────────────────
       # 4. Build Backend (TypeScript → JS + Prisma)
       # ─────────────────────────────────────────────
-      - name: 🔧 Install & Build Backend
+      - name: 🔧 Build Backend
         run: |
           cd backend
           npm ci
@@ -50,100 +50,96 @@ jobs:
           echo "✅ Backend build done"
 
       # ─────────────────────────────────────────────
-      # 5. Gộp tất cả vào thư mục build/
+      # 5. Gộp tất cả vào build/
       # ─────────────────────────────────────────────
       - name: 🗜️ Consolidate build outputs
         run: |
           node scripts/consolidate-build.js
-          echo "✅ Build structure:"
           ls -la build/
           ls -la build/server/
 
       # ─────────────────────────────────────────────
-      # 6. Tạo file .env production từ GitHub Secrets
+      # 6. Tạo .env production từ GitHub Secrets
       # ─────────────────────────────────────────────
       - name: 🔐 Create production .env
         run: |
-          cat > build/.env << EOF
-          PORT=3000
-          NODE_ENV=production
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
-          CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
-          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
-          EOF
+          printf 'PORT=3000\nNODE_ENV=production\nJWT_SECRET=%s\nDATABASE_URL=%s\nCORS_ORIGIN=%s\nSTRIPE_SECRET_KEY=%s\n' \
+            "${{ secrets.JWT_SECRET }}" \
+            "${{ secrets.DATABASE_URL }}" \
+            "${{ secrets.CORS_ORIGIN }}" \
+            "${{ secrets.STRIPE_SECRET_KEY }}" \
+            > build/.env
           echo "✅ .env created"
 
       # ─────────────────────────────────────────────
-      # 7. Deploy lên Hostinger qua SSH/rsync
+      # 7. Upload lên Hostinger qua FTP
+      #    Chỉ cần 3 biến: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+      #    Lấy từ hPanel → FTP Accounts
       # ─────────────────────────────────────────────
-      - name: 🚀 Deploy to Hostinger via rsync
+      - name: 🚀 Upload to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          local-dir: build/
+          server-dir: public_html/
+          # Không xóa uploads/ và database trên server
+          exclude: |
+            **/uploads/**
+            **/server/prisma/*.db
+            **/server/prisma/*.db-journal
+            **/server/prisma/*.db-wal
+          timeout: 60000
+          log-level: standard
+
+      # ─────────────────────────────────────────────
+      # 8. Post-deploy: npm install + prisma + restart
+      #    (Chỉ chạy nếu có SSH_PRIVATE_KEY trong Secrets)
+      #    Bỏ qua bước này nếu chưa cấu hình SSH
+      # ─────────────────────────────────────────────
+      - name: 🔄 Post-deploy on server (SSH)
+        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PORT: ${{ secrets.SSH_PORT || '65002' }}
         run: |
-          # Cài đặt SSH key
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-
-          # Thêm host vào known_hosts
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-          # Đồng bộ build/ lên public_html/ (bỏ qua uploads/ và DB để không mất dữ liệu)
-          rsync -avz --delete \
-            --exclude 'uploads/' \
-            --exclude 'server/prisma/*.db' \
-            --exclude 'server/prisma/*.db-journal' \
-            -e "ssh -i ~/.ssh/deploy_key -p $SSH_PORT -o StrictHostKeyChecking=no" \
-            build/ \
-            "$SSH_USER@$SSH_HOST:~/public_html/"
-
-          echo "✅ Files synced to Hostinger"
-
-      # ─────────────────────────────────────────────
-      # 8. Chạy post-deploy commands trên server
-      # ─────────────────────────────────────────────
-      - name: 🔄 Post-deploy setup on server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-        run: |
           ssh -i ~/.ssh/deploy_key \
             -p "$SSH_PORT" \
             -o StrictHostKeyChecking=no \
             "$SSH_USER@$SSH_HOST" << 'ENDSSH'
             set -e
             cd ~/public_html/server
-
-            echo "📦 Installing backend dependencies..."
+            echo "📦 npm install..."
             npm install --omit=dev --prefer-offline
-
-            echo "🔄 Generating Prisma client..."
+            echo "🔄 prisma generate..."
             npx prisma generate
-
-            echo "🗄️ Running database migrations..."
+            echo "🗄️ prisma migrate..."
             npx prisma migrate deploy
-
-            echo "✅ Deployment complete!"
+            echo "✅ Post-deploy done!"
           ENDSSH
 
       # ─────────────────────────────────────────────
-      # 9. Tóm tắt kết quả
+      # 9. Kết quả
       # ─────────────────────────────────────────────
-      - name: ✅ Deployment Summary
+      - name: ✅ Deploy thành công!
         if: success()
         run: |
-          echo "🎉 DEPLOY THÀNH CÔNG!"
-          echo "Branch  : ${{ github.ref_name }}"
-          echo "Commit  : ${{ github.sha }}"
-          echo "Trigger : ${{ github.event_name }}"
+          echo "🎉 ========================"
+          echo "   DEPLOY THÀNH CÔNG!"
+          echo "========================"
+          echo "Branch : ${{ github.ref_name }}"
+          echo "Commit : ${{ github.sha }}"
 
-      - name: ❌ Deployment Failed
+      - name: ❌ Deploy thất bại
         if: failure()
-        run: |
-          echo "💥 Deploy thất bại! Kiểm tra log phía trên."
+        run: echo "💥 Thất bại! Xem log ở trên."

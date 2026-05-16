@@ -1,6 +1,7 @@
 node_modules
 dist
 .env
+GITHUB_SECRETS.env
 .DS_Store
 *.log
 web
