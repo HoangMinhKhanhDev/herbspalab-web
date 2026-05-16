@@ -114,7 +114,11 @@ app.use('/api/consultations', consultationRoutes);
 const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
 // Serving React Frontend
-const frontendPath = path.join(__dirname, '../../frontend/dist');
+// In production (Hostinger): backend is at public_html/server/, frontend is at public_html/
+// In development: backend/dist/ → ../../frontend/dist
+const frontendPath = process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, '..')
+    : path.join(__dirname, '../../frontend/dist');
 app.use(express.static(frontendPath));
 app.get(/(.*)/, (req, res, next) => {
     if (req.path.startsWith('/api'))

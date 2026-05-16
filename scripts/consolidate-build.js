@@ -63,8 +63,32 @@ if (fs.existsSync(backendUploads)) {
   }
 }
 
+// Create root package.json for Hostinger Node.js (entry point)
+const rootPackageJson = {
+  name: 'herbspalab',
+  version: '1.0.0',
+  private: true,
+  type: 'module',
+  scripts: {
+    start: 'node server/index.js'
+  },
+  engines: {
+    node: '>=20'
+  }
+};
+fs.writeFileSync(
+  path.join(buildDir, 'package.json'),
+  JSON.stringify(rootPackageJson, null, 2)
+);
+console.log('📄 Created root package.json for Hostinger Node.js');
+
 console.log('✅ Build consolidation complete!');
 console.log(`📦 Build output: ${buildDir}`);
+console.log('');
+console.log('⚠️  Hostinger config required:');
+console.log('   - App type: Node.js (NOT Create React App)');
+console.log('   - Entry point: server/index.js');
+console.log('   - NODE_ENV=production in environment variables');
 
 function copyRecursiveSync(src, dest) {
   const exists = fs.existsSync(src);
