@@ -7,8 +7,12 @@ import sharp from 'sharp';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../../uploads');
+// Ensure upload directory exists.
+// Prefer UPLOADS_DIR env (e.g. /home/user/uploads_data) so files survive
+// redeploys that wipe the application directory. Fallback to local path.
+const uploadDir = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.join(__dirname, '../../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

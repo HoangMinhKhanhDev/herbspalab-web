@@ -178,10 +178,14 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/attributes', attributeRoutes);
 app.use('/api/consultations', consultationRoutes);
 
-// Serving Static Files (uploads)
-const uploadsPath = path.join(__dirname, '../uploads');
+// Serving Static Files (uploads).
+// Persist user uploads outside the app dir (which Hostinger wipes on redeploy)
+// by setting UPLOADS_DIR env, e.g. /home/<user>/uploads_data.
+const uploadsPath = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.join(__dirname, '../uploads');
 try { mkdirSync(uploadsPath, { recursive: true }); } catch {}
-app.use('/uploads', express.static(uploadsPath));
+app.use('/uploads', express.static(uploadsPath, { maxAge: '7d', etag: true }));
 
 // Serving React Frontend
 // In production (Hostinger): backend is at public_html/server/, frontend is at public_html/
