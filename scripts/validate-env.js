@@ -12,7 +12,6 @@ const REQUIRED_VARS = [
   { name: 'CORS_ORIGIN', description: 'Comma-separated CORS whitelist' },
   { name: 'FRONTEND_URL', pattern: /^https?:\/\//, description: 'Frontend URL with http:// or https://' },
   { name: 'DOMAIN', pattern: /^https?:\/\//, description: 'Domain with http:// or https://' },
-  { name: 'HOSTINGER_DEPLOY', expected: '1', description: 'Hostinger deployment flag' },
 ];
 
 const OPTIONAL_VARS = [

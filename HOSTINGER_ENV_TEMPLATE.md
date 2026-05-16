@@ -12,7 +12,6 @@ Set these in **hPanel → Deployments → Edit → Environment Variables**:
 | `CORS_ORIGIN` | `https://herbspalab.com,https://www.herbspalab.com` | Comma-separated whitelist of allowed origins for API calls |
 | `FRONTEND_URL` | `https://herbspalab.com` | Frontend URL (used for Stripe redirects, password reset emails) |
 | `DOMAIN` | `https://herbspalab.com` | Fallback for FRONTEND_URL |
-| `HOSTINGER_DEPLOY` | `1` | Flag to enable auto-build on Hostinger (triggers postinstall hook) |
 
 ## Optional Environment Variables (Tùy chọn)
 
@@ -47,7 +46,6 @@ DATABASE_URL=file:/home/u670570555/private/herbspalab.db
 CORS_ORIGIN=https://herbspalab.com,https://www.herbspalab.com
 FRONTEND_URL=https://herbspalab.com
 DOMAIN=https://herbspalab.com
-HOSTINGER_DEPLOY=1
 UPLOADS_DIR=/home/u670570555/uploads_data
 ```
 

@@ -1,82 +1,36 @@
 # Deploy HerbSpaLab lên Hostinger
 
-Repo deploy qua **Hostinger Git Deployment** (hPanel → Deployments) với
-framework **Express**. Khi push lên `main`, Hostinger build và publish theo
-mô hình **dual-target** (rất quan trọng để hiểu).
+Repo deploy qua **Hostinger Node.js Web Apps** (hPanel → Node.js). Khi push lên
+`main`, Hostinger tự động build và deploy.
 
-## 🎯 QUAN TRỌNG: Deployment đã được tự động hóa!
+## 🎯 QUAN TRỌNG: Deployment đã được đơn giản hóa!
 
-**Không cần SSH seed data thủ công nữa!** Seed data sẽ tự động chạy sau mỗi lần deploy.
+**Không cần SSH seed data thủ công!** Seed data tự động chạy sau mỗi lần deploy.
+**Không cần postinstall hook!** Hostinger dùng Build command trực tiếp.
 
-## 1. Mô hình deploy của Hostinger Express
+## 1. Cấu hình Hostinger Node.js Web Apps
 
-Hostinger chia làm 2 nơi:
-
-```
-~/domains/herbspalab.com/
-├── nodejs/                    # ⭐ Node.js app runtime (Passenger đọc)
-│   ├── frontend/, backend/, scripts/, ...
-│   ├── package.json
-│   ├── node_modules/
-│   ├── build/                 # output của postinstall
-│   │   ├── server/index.js    # ⭐ Application Startup File
-│   │   ├── server/prisma/
-│   │   ├── server/node_modules/
-│   │   ├── index.html         # frontend entry
-│   │   └── assets/
-│   └── tmp/restart.txt        # touch để Passenger reload
-│
-└── public_html/               # ⭐ Apache document root (static files)
-    ├── index.html             # ← copy từ build/index.html
-    ├── assets/, robots.txt    # ← copy từ build/
-    ├── server/, uploads/      # ← copy từ build/
-    ├── .htaccess              # ⭐ Apache rules + Passenger config
-    └── .builds/               # build sandbox của Hostinger
-```
-
-- **Frontend**: Apache serve trực tiếp từ `public_html/` (nhanh)
-- **Backend**: Apache rewrite `/api/*` và `/uploads/*` về Passenger →
-  Passenger chạy `nodejs/build/server/index.js`
-- **Database**: SQLite ở `~/private/herbspalab.db` (ngoài public_html, ngoài nodejs/)
-  → không bị wipe khi redeploy, không bị Apache leak
-
-## 2. Setup ban đầu (chỉ làm 1 lần)
-
-### 2.1 Tạo Node.js application
-
-**hPanel → Advanced → Node.js → Create application**:
+**hPanel → Node.js → Edit application:**
 
 | Field | Value |
 |-------|-------|
-| Application Root | `domains/herbspalab.com/nodejs` |
-| Application URL | `herbspalab.com` |
-| Application Startup File | `build/server/index.js` |
-| Node version | 20.x |
-
-### 2.2 Cấu hình Git Deployment
-
-**hPanel → Deployments → Create / Edit**:
-
-| Field | Value |
-|-------|-------|
-| Repository | `https://github.com/HoangMinhKhanhDev/herbspalab-web.git` |
+| Framework preset | `Other` |
 | Branch | `main` |
-| Auto deployment on push | ✅ Bật |
-| **Framework** | `Other` |
-| **Lệnh xây dựng** | _(trống — postinstall tự build)_ |
-| **Trình quản lý gói** | `npm` |
-| **Thư mục đầu ra** | `build` |
-| **Tệp đầu vào** | `server/index.js` |
+| Node version | `20.x` |
+| Root directory | `./` |
+| **Build command** | `npm run deploy:hostinger` |
+| Package manager | `npm` |
+| **Output directory** | `build` |
+| **Entry file** | `server/index.js` |
 
 > Hostinger sẽ:
-> 1. Clone repo về `.builds/source/repository/`
-> 2. Chạy `npm install` → trigger `postinstall` → build full pipeline
-> 3. Copy nội dung `build/` ra `public_html/` (do Output dir = `build`)
-> 4. Copy whole repo về `~/domains/.../nodejs/` cho Passenger
-> 5. Append Passenger config vào `public_html/.htaccess`
-> 6. Touch `~/domains/.../nodejs/tmp/restart.txt` để Passenger reload
+> 1. Clone repo về
+> 2. Chạy `npm install`
+> 3. Chạy Build command: `npm run deploy:hostinger` → build frontend + backend + consolidate
+> 4. Copy `build/` → output directory
+> 5. Chạy `node server/index.js`
 
-### 2.3 Environment variables (QUAN TRỌNG)
+## 2. Environment variables (QUAN TRỌNG)
 
 **hPanel → Deployments → Edit → Environment Variables**
 
@@ -90,7 +44,6 @@ DATABASE_URL=file:/home/$(whoami)/private/herbspalab.db  # Thay $(whoami) bằng
 CORS_ORIGIN=https://herbspalab.com,https://www.herbspalab.com
 FRONTEND_URL=https://herbspalab.com
 DOMAIN=https://herbspalab.com
-HOSTINGER_DEPLOY=1
 UPLOADS_DIR=/home/$(whoami)/uploads_data
 ```
 

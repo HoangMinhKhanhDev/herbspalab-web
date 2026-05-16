@@ -12,7 +12,6 @@
     "build": "npm run build:frontend && npm run build:backend && node scripts/consolidate-build.js",
     "postbuild:server": "cd build/server && npm install --omit=dev --no-audit --no-fund && npx prisma generate && npx prisma db push --skip-generate --accept-data-loss && node prisma/seed-demo.js",
     "deploy:hostinger": "npm run build && npm run postbuild:server",
-    "postinstall": "node scripts/run-if-hostinger.js",
     "verify:deploy": "node scripts/verify-deploy.js",
     "validate:env": "node scripts/validate-env.js",
     "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
